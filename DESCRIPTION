@@ -12,3 +12,4 @@ License: What license it uses
 Encoding: UTF-8
 LazyData: true
 URL: https://github.com/kaerosen/mastersproject
+BugReports: https://github.com/kaerosen/mastersproject/issues
