@@ -1,10 +1,8 @@
 # STEP 1 - Transform centroids so that neighbors are equidistant
-library(sf)
 
 # data is sfc object with geometry type MULTIPOLYGON
 # crs is coordinate reference system epsg code, default is mercator
-# criterion is the distance used to determine if the centroids have converged
-transform_centroids <- function(data, crs = 3857, criterion = 5000) {
+transform_centroids <- function(data, crs = 3857) {
   # get centroids
   original_centroids <- st_centroid(data)
 
@@ -42,18 +40,22 @@ transform_centroids <- function(data, crs = 3857, criterion = 5000) {
   s <- sqrt(A/R)
 
   # calculate new centroids
-  old_centroids <- noisy_centroids
-  new_centroids <- update_centroids(noisy_centroids, neighbors, s)
-  dist <- as.numeric(st_distance(old_centroids, new_centroids, by_element = TRUE))
-  iter <- 1
-  while (sum(dist > criterion) > 0) {
+  old_centroids <- update_centroids(noisy_centroids, neighbors, s)
+  dist <- as.numeric(st_distance(noisy_centroids, old_centroids, by_element = TRUE))
+  new_centroids <- update_centroids(old_centroids, neighbors, s)
+  new_dist <- as.numeric(st_distance(old_centroids, new_centroids, by_element = TRUE))
+  per_change <- (new_dist - dist) / dist
+  iter <- 2
+  while (sum(abs(per_change) > .15) > 0) {
     if (iter > 50) {
       stop("failed to converge")
     }
-    #print(c(iter, sum(dist > criterion)))
+    #print(c(iter, sum(abs(per_change) > .15)))
     old_centroids <- new_centroids
+    dist <- new_dist
     new_centroids <- update_centroids(old_centroids, neighbors, s)
-    dist <- as.numeric(st_distance(old_centroids, new_centroids, by_element = TRUE))
+    new_dist <- as.numeric(st_distance(old_centroids, new_centroids, by_element = TRUE))
+    per_change <- (new_dist - dist) / dist
     iter <- iter + 1
   }
 
