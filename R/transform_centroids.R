@@ -59,7 +59,11 @@ transform_centroids <- function(data, crs = 3857) {
     iter <- iter + 1
   }
 
-  new_centroids
+  outputs <- list("noisy_centroids" = noisy_centroids,
+                  "transformed_centroids" = new_centroids)
+
+  return(outputs)
+
 }
 
 update_centroids <- function(centroids, neighbors, s) {
