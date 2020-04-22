@@ -4,13 +4,33 @@ transform_boundary <- function(data, noisy_centroids, new_centroids) {
   # take sample of original boundary points
   original_poly <- st_union(data)
   original_boundary <- st_boundary(original_poly)
+  if (sum(class(original_boundary) == "sfc_MULTILINESTRING") == 0) {
+    original_boundary <- st_cast(original_boundary, "MULTILINESTRING")
+  }
   boundary_points <- st_cast(original_boundary, "MULTIPOINT")
   boundary_coords <- data.frame(st_coordinates(boundary_points))
-  num_points <- nrow(boundary_coords)
-  index <- 1:1000 * floor(num_points/1000)
-  samp_coords <- boundary_coords[index,]
-  samp_points <- boundary_points[1]
-  samp_points[1] <- st_multipoint(as.matrix(samp_coords[,1:2]))
+
+  prop <- lengths(original_boundary[[1]]) / sum(lengths(original_boundary[[1]]))
+  sample_size <- ceiling(prop * 1000)
+  sample_groups <- which(sample_size > 3)
+
+  subset <- boundary_coords %>%
+    filter(L1 == sample_groups[1])
+  index <- c(1, 1:(sample_size[sample_groups[1]]-2) * floor(nrow(subset)/sample_size[sample_groups[1]]),
+             nrow(subset))
+
+  sample <- subset[index,]
+  if (length(sample_groups) > 1) {
+    for (i in 2:length(sample_groups)) {
+      subset <- boundary_coords %>%
+        filter(L1 == sample_groups[i])
+      index <- c(1, 1:(sample_size[sample_groups[i]]-2) * floor(nrow(subset)/sample_size[sample_groups[i]]),
+                 nrow(subset))
+      sample <- rbind(sample, subset[index,])
+    }
+  }
+
+  samp_points <- st_sfc(st_multipoint(as.matrix(sample[,1:2])), crs = st_crs(data))
   samp_points <- st_cast(samp_points, "POINT")
 
   # find k nearest noisy_centroids to each boundary point
@@ -62,18 +82,20 @@ transform_boundary <- function(data, noisy_centroids, new_centroids) {
 
   # convert new boundary points to multilinestring
   new_boundary_coords <- data.frame(st_coordinates(new_boundary))
-  new_boundary_coords$L1 <- samp_coords$L1
-  group <- unique(samp_coords$L1)
+  new_boundary_coords$L1 <- sample$L1
+
   coords_list <- list()
-  for (i in 1:length(group)) {
+  for (i in 1:length(sample_groups)) {
     points <- new_boundary_coords %>%
-      filter(L1 == group[i]) %>%
+      filter(L1 == sample_groups[i]) %>%
       select("X","Y")
     coords_list[[i]] <- as.matrix(points)
-    }
-  new_ls <- st_multilinestring(coords_list)
-  new_boundary <- original_boundary
-  new_boundary[[1]] <- new_ls
+  }
+
+  new_boundary <- st_sfc(st_polygon(coords_list), crs = st_crs(data))
+  if (!st_is_valid(new_boundary)) {
+    new_boundary <- st_make_valid(new_boundary)
+  }
 
   new_boundary
 }
