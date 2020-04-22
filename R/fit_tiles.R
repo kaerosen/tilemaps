@@ -1,12 +1,8 @@
 # STEP 3 - Fit tiles to boundary
 
-fit_tiles <- function(data, square = TRUE, flat_topped = FALSE) {
-  boundary_poly <- st_union(data)
-  boundary_line <- st_boundary(boundary_poly)
-  original_centroids <- st_centroid(data)
+fit_tiles <- function(data, boundary_poly, R, square = TRUE, flat_topped = FALSE) {
 
   # calculate grid step size
-  R <- length(original_centroids)
   A <- sum(st_area(data))
   s <- as.numeric(sqrt(A/R))
 
@@ -34,7 +30,8 @@ fit_tiles <- function(data, square = TRUE, flat_topped = FALSE) {
       tile_centroids <- st_centroid(grid)
       new_num_contained <- length(st_contains(boundary_poly, tile_centroids)[[1]])
     }
-  } else {
+  }
+  if (num_contained < R) {
     s_range[1] <- .9*s
     s_range[2] <- s
     grid <- st_make_grid(boundary_poly, cellsize = s_range[1],
