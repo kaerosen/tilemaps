@@ -1,8 +1,8 @@
 # STEP 1 - Transform centroids so that neighbors are equidistant
 
 # data is sfc object with geometry type MULTIPOLYGON
-# crs is coordinate reference system epsg code, default is mercator
-transform_centroids <- function(data, crs = 3857) {
+# crs is coordinate reference system epsg code, s is estimated grid step size
+transform_centroids <- function(data, crs, s) {
   # get centroids
   original_centroids <- st_centroid(data)
 
@@ -34,11 +34,6 @@ transform_centroids <- function(data, crs = 3857) {
   noisy_centroids <- original_centroids + noise
   noisy_centroids <- st_set_crs(noisy_centroids, crs)
 
-  # estimate grid step size
-  R <- length(original_centroids)
-  A <- sum(st_area(data))
-  s <- sqrt(A/R)
-
   # calculate new centroids
   old_centroids <- update_centroids(noisy_centroids, neighbors, s)
   dist <- as.numeric(st_distance(noisy_centroids, old_centroids, by_element = TRUE))
@@ -47,7 +42,7 @@ transform_centroids <- function(data, crs = 3857) {
   per_change <- (new_dist - dist) / dist
   iter <- 2
   while (sum(abs(per_change) > .15) > 0) {
-    if (iter > 50) {
+    if (iter > 75) {
       stop("failed to converge")
     }
     #print(c(iter, sum(abs(per_change) > .15)))

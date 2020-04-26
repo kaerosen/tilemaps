@@ -80,7 +80,7 @@ transform_boundary <- function(data, noisy_centroids, new_centroids) {
     new_boundary[i] <- total + v[i] * sqrt(s / norm(st_coordinates(v[i]), type = "f"))
   }
 
-  # convert new boundary points to multilinestring
+  # convert new boundary points to polygon
   new_boundary_coords <- data.frame(st_coordinates(new_boundary))
   new_boundary_coords$L1 <- sample$L1
 

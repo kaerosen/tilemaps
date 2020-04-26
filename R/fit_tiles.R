@@ -1,11 +1,6 @@
 # STEP 3 - Fit tiles to boundary
 
-fit_tiles <- function(data, boundary_poly, R, square = TRUE, flat_topped = FALSE) {
-
-  # calculate grid step size
-  A <- sum(st_area(data))
-  s <- as.numeric(sqrt(A/R))
-
+fit_tiles <- function(boundary_poly, R, s, square = TRUE, flat_topped = FALSE) {
   # create grid
   grid <- st_make_grid(boundary_poly, cellsize = s,
                        square = square, flat_topped = flat_topped)
@@ -48,18 +43,15 @@ fit_tiles <- function(data, boundary_poly, R, square = TRUE, flat_topped = FALSE
   }
 
   # resize grid
-  iter <- 1
+  #iter <- 1
   #print(c(iter, num_contained))
   while (num_contained != R) {
-    if (iter > 50) {
-      stop("failed to converge")
-    }
     grid <- st_make_grid(boundary_poly, cellsize = mean(s_range),
                          square = square, flat_topped = flat_topped)
     tile_centroids <- st_centroid(grid)
     num_contained <- length(st_contains(boundary_poly, tile_centroids)[[1]])
-    iter <- iter + 1
-    print(c(iter, num_contained))
+    #iter <- iter + 1
+    #print(c(iter, num_contained))
     if (num_contained > R) {
       s_range[1] <- mean(s_range)
     } else {
