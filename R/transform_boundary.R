@@ -16,16 +16,24 @@ transform_boundary <- function(data, noisy_centroids, new_centroids) {
 
   subset <- boundary_coords %>%
     filter(L1 == sample_groups[1])
-  index <- c(1, 1:(sample_size[sample_groups[1]]-2) * floor(nrow(subset)/sample_size[sample_groups[1]]),
-             nrow(subset))
+  if (sample_size[1] > nrow(subset)) {
+    index <- 1:nrow(subset)
+  } else {
+    index <- c(1, 1:(sample_size[sample_groups[1]]-2) * floor(nrow(subset)/sample_size[sample_groups[1]]),
+               nrow(subset))
+  }
 
   sample <- subset[index,]
   if (length(sample_groups) > 1) {
     for (i in 2:length(sample_groups)) {
       subset <- boundary_coords %>%
         filter(L1 == sample_groups[i])
-      index <- c(1, 1:(sample_size[sample_groups[i]]-2) * floor(nrow(subset)/sample_size[sample_groups[i]]),
-                 nrow(subset))
+      if (sample_size[i] > nrow(subset)) {
+        index <- 1:nrow(subset)
+      } else {
+        index <- c(1, 1:(sample_size[sample_groups[i]]-2) * floor(nrow(subset)/sample_size[sample_groups[i]]),
+                   nrow(subset))
+      }
       sample <- rbind(sample, subset[index,])
     }
   }
