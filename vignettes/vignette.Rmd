@@ -1,0 +1,36 @@
+---
+title: "vignette"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{vignette}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r, include = FALSE}
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment = "#>"
+)
+```
+
+```{r setup}
+library(mastersproject)
+```
+
+```{r}
+# read in shape file
+nc <- st_read(system.file("shape/nc.shp", package="sf"))
+
+# choose coordinate projection
+nc_3857 <- st_transform(nc, 3857)
+
+# create tile map
+nc_3857$tile_map <- generate_map(nc_3857$geometry)
+
+# plot tile map
+ggplot(nc_3857) +
+  geom_sf(aes(geometry = tile_map)) +
+  geom_sf_text(aes(geometry = tile_map, label = NAME), angle = 45, size = 2)
+```
+
