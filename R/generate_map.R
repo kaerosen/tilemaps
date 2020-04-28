@@ -1,8 +1,10 @@
 # data is object of class sfc_MULTIPOLYGON or sfc_POLYGON
 # square is TRUE for square tile map, FALSE for hexagon tile map
 # flat_topped is TRUE for hexagons that are are flat topped
+# shift_right is the number of grid steps to shift tile map to the right before fitting tiles to boundary
+# shift_up is the number of grid steps to shift tile map up before fitting tiles to boundary
 
-generate_map <- function(data, square = TRUE, flat_topped = FALSE) {
+generate_map <- function(data, square = TRUE, flat_topped = FALSE, shift_right = 0, shift_up = 0) {
   # get crs
   crs <- st_crs(data)
 
@@ -20,16 +22,15 @@ generate_map <- function(data, square = TRUE, flat_topped = FALSE) {
   transformed_boundary <- transform_boundary(data, noisy_centroids, transformed_centroids)
 
   # STEP 3 - fit tiles to boundary
-  grid <- fit_tiles(transformed_boundary, R, s, square, flat_topped)
+  grid <- fit_tiles(transformed_boundary, R, s, square, flat_topped, shift_right, shift_up)
 
   # STEP 4 - assign regions to tiles
   original_centroids <- st_centroid(data)
   tile_centroids <- st_centroid(grid)
   perm <- assign_regions(original_centroids, tile_centroids)
+  grid <- grid[order(perm)]
 
-  # output tile map and permutation of original indices indicating which region is assigned to each tile
-  outputs <- list("map" = grid,
-                  "assignment" = perm)
+  # output tile map in order of original data
+  grid
 
-  return(outputs)
 }
