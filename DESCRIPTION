@@ -13,3 +13,12 @@ Encoding: UTF-8
 LazyData: true
 URL: https://github.com/kaerosen/mastersproject
 BugReports: https://github.com/kaerosen/mastersproject/issues
+Imports:
+    clue,
+    lwgeom,
+    sf
+Suggests:
+    ggplot2,
+    knitr,
+    rmarkdown
+VignetteBuilder: knitr
