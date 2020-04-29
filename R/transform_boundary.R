@@ -1,6 +1,6 @@
 # STEP 2 - Transform boundary polygon
 
-transform_boundary <- function(data, noisy_centroids, new_centroids) {
+transform_boundary <- function(data, noisy_centroids, new_centroids, smoothness = 0) {
   # take sample of original boundary points
   original_poly <- st_union(data)
   original_boundary <- st_boundary(original_poly)
@@ -101,6 +101,11 @@ transform_boundary <- function(data, noisy_centroids, new_centroids) {
   }
 
   new_boundary <- st_sfc(st_polygon(coords_list), crs = st_crs(data))
+
+  if (smoothness != 0) {
+    new_boundary <- smoothr::smooth(new_boundary, method = "ksmooth", smoothness = smoothness)
+  }
+
   if (!st_is_valid(new_boundary)) {
     new_boundary <- st_make_valid(new_boundary)
   }

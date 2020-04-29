@@ -1,10 +1,12 @@
 # data is object of class sfc_MULTIPOLYGON or sfc_POLYGON
 # square is TRUE for square tile map, FALSE for hexagon tile map
 # flat_topped is TRUE for hexagons that are are flat topped
+# smoothness controls how much the transformed boundary should be smoothed
 # shift_right is the number of grid steps to shift tile map to the right before fitting tiles to boundary
 # shift_up is the number of grid steps to shift tile map up before fitting tiles to boundary
 
-generate_map <- function(data, square = TRUE, flat_topped = FALSE, shift_right = 0, shift_up = 0) {
+generate_map <- function(data, square = TRUE, flat_topped = FALSE, smoothness = 0,
+                         shift_right = 0, shift_up = 0) {
   # get crs
   crs <- st_crs(data)
 
@@ -19,7 +21,7 @@ generate_map <- function(data, square = TRUE, flat_topped = FALSE, shift_right =
   transformed_centroids <- centroids$transformed_centroids
 
   # STEP 2 - transform boundary
-  transformed_boundary <- transform_boundary(data, noisy_centroids, transformed_centroids)
+  transformed_boundary <- transform_boundary(data, noisy_centroids, transformed_centroids, smoothness)
 
   # STEP 3 - fit tiles to boundary
   grid <- fit_tiles(transformed_boundary, R, s, square, flat_topped, shift_right, shift_up)
