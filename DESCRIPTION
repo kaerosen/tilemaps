@@ -16,7 +16,8 @@ BugReports: https://github.com/kaerosen/mastersproject/issues
 Imports:
     clue,
     lwgeom,
-    sf
+    sf,
+    smoothr
 Suggests:
     ggplot2,
     knitr,
