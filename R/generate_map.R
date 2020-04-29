@@ -27,9 +27,8 @@ generate_map <- function(data, square = TRUE, flat_topped = FALSE, smoothness = 
   grid <- fit_tiles(transformed_boundary, R, s, square, flat_topped, shift_right, shift_up)
 
   # STEP 4 - assign regions to tiles
-  original_centroids <- st_centroid(data)
   tile_centroids <- st_centroid(grid)
-  perm <- assign_regions(original_centroids, tile_centroids)
+  perm <- assign_regions(transformed_centroids, tile_centroids)
   grid <- grid[order(perm)]
 
   # output tile map in order of original data
