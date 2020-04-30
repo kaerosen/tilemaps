@@ -2,8 +2,12 @@
 
 fit_tiles <- function(boundary_poly, R, s, square = TRUE, flat_topped = FALSE, shift = c(0,0)) {
   # create grid
-  grid <- st_make_grid(boundary_poly, cellsize = s,
+  #grid <- st_make_grid(boundary_poly, cellsize = s,
+                       #square = square, flat_topped = flat_topped)
+  buffer <- st_buffer(boundary_poly, max(abs(shift))*s)
+  grid <- st_make_grid(buffer, cellsize = s,
                        square = square, flat_topped = flat_topped)
+
   crs <- st_crs(grid)
   grid <- st_set_crs(grid + shift*s, crs)
 
@@ -16,14 +20,22 @@ fit_tiles <- function(boundary_poly, R, s, square = TRUE, flat_topped = FALSE, s
   if (num_contained > R) {
     s_range[1] <- s
     s_range[2] <- 1.1*s
-    grid <- st_make_grid(boundary_poly, cellsize = s_range[2],
+    #grid <- st_make_grid(boundary_poly, cellsize = s_range[2],
+                         #square = square, flat_topped = flat_topped)
+    buffer <- st_buffer(boundary_poly, max(abs(shift))*s_range[2])
+    grid <- st_make_grid(buffer, cellsize = s_range[2],
                          square = square, flat_topped = flat_topped)
+    grid <- st_set_crs(grid + shift*s_range[2], crs)
     tile_centroids <- st_centroid(grid)
     new_num_contained <- length(st_contains(boundary_poly, tile_centroids)[[1]])
     while(new_num_contained > R) {
       s_range[2] <- 1.1*s_range[2]
-      grid <- st_make_grid(boundary_poly, cellsize = s_range[2],
+      #grid <- st_make_grid(boundary_poly, cellsize = s_range[2],
+                           #square = square, flat_topped = flat_topped)
+      buffer <- st_buffer(boundary_poly, max(abs(shift))*s_range[2])
+      grid <- st_make_grid(buffer, cellsize = s_range[2],
                            square = square, flat_topped = flat_topped)
+      grid <- st_set_crs(grid + shift*s_range[2], crs)
       tile_centroids <- st_centroid(grid)
       new_num_contained <- length(st_contains(boundary_poly, tile_centroids)[[1]])
     }
@@ -31,14 +43,22 @@ fit_tiles <- function(boundary_poly, R, s, square = TRUE, flat_topped = FALSE, s
   if (num_contained < R) {
     s_range[1] <- .9*s
     s_range[2] <- s
-    grid <- st_make_grid(boundary_poly, cellsize = s_range[1],
+    #grid <- st_make_grid(boundary_poly, cellsize = s_range[1],
+                         #square = square, flat_topped = flat_topped)
+    buffer <- st_buffer(boundary_poly, max(abs(shift))*s_range[1])
+    grid <- st_make_grid(buffer, cellsize = s_range[1],
                          square = square, flat_topped = flat_topped)
+    grid <- st_set_crs(grid + shift*s_range[1], crs)
     tile_centroids <- st_centroid(grid)
     new_num_contained <- length(st_contains(boundary_poly, tile_centroids)[[1]])
     while(new_num_contained < R) {
       s_range[1] <- .9*s_range[1]
-      grid <- st_make_grid(boundary_poly, cellsize = s_range[1],
+      #grid <- st_make_grid(boundary_poly, cellsize = s_range[1],
+                           #square = square, flat_topped = flat_topped)
+      buffer <- st_buffer(boundary_poly, max(abs(shift))*s_range[1])
+      grid <- st_make_grid(buffer, cellsize = s_range[1],
                            square = square, flat_topped = flat_topped)
+      grid <- st_set_crs(grid + shift*s_range[1], crs)
       tile_centroids <- st_centroid(grid)
       new_num_contained <- length(st_contains(boundary_poly, tile_centroids)[[1]])
     }
@@ -48,8 +68,12 @@ fit_tiles <- function(boundary_poly, R, s, square = TRUE, flat_topped = FALSE, s
   #iter <- 1
   #print(c(iter, num_contained))
   while (num_contained != R) {
-    grid <- st_make_grid(boundary_poly, cellsize = mean(s_range),
+    #grid <- st_make_grid(boundary_poly, cellsize = mean(s_range),
+                         #square = square, flat_topped = flat_topped)
+    buffer <- st_buffer(boundary_poly, max(abs(shift))*mean(s_range))
+    grid <- st_make_grid(buffer, cellsize = mean(s_range),
                          square = square, flat_topped = flat_topped)
+    grid <- st_set_crs(grid + shift*mean(s_range), crs)
     tile_centroids <- st_centroid(grid)
     num_contained <- length(st_contains(boundary_poly, tile_centroids)[[1]])
     #iter <- iter + 1
