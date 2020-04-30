@@ -18,13 +18,20 @@ generate_map <- function(data, square = TRUE, flat_topped = FALSE, prop = 0, int
   A <- sum(st_area(data))
   s <- as.numeric(sqrt(A/R))
 
+  # find set of neighbors
+  neighbors <- st_touches(data)
+
   # STEP 1 - transform centroids
-  centroids <- transform_centroids(data, crs, s, prop, interpolate)
+  centroids <- transform_centroids(data, neighbors, crs, s, prop)
   noisy_centroids <- centroids$noisy_centroids
   transformed_centroids <- centroids$transformed_centroids
+  transformed_centroids <- interpolate_centroids(noisy_centroids, transformed_centroids, crs, interpolate)
 
   # STEP 2 - transform boundary
-  transformed_boundary <- transform_boundary(data, noisy_centroids, transformed_centroids, smoothness)
+  transformed_boundary <- transform_boundary(data, noisy_centroids, transformed_centroids)
+  if (smoothness != 0) {
+    transformed_boundary <- smoothr::smooth(transformed_boundary, method = "ksmooth", smoothness = smoothness)
+  }
 
   # STEP 3 - fit tiles to boundary
   grid <- fit_tiles(transformed_boundary, R, s, square, flat_topped, shift)
