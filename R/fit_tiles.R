@@ -1,12 +1,11 @@
 # STEP 3 - Fit tiles to boundary
 
-fit_tiles <- function(boundary_poly, R, s, square = TRUE, flat_topped = FALSE,
-                      shift_right = 0, shift_up = 0) {
+fit_tiles <- function(boundary_poly, R, s, square = TRUE, flat_topped = FALSE, shift = c(0,0)) {
   # create grid
   grid <- st_make_grid(boundary_poly, cellsize = s,
                        square = square, flat_topped = flat_topped)
   crs <- st_crs(grid)
-  grid <- st_set_crs(grid + c(shift_right, shift_up)*s, crs)
+  grid <- st_set_crs(grid + shift*s, crs)
 
   # calculate number of tile centroids inside boundary
   tile_centroids <- st_centroid(grid)
