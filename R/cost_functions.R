@@ -70,7 +70,3 @@ roughness_cost <- function(square, tile_map) {
 
 }
 
-# total cost
-total_cost <- function(location_cost, adjacency_cost, angle_cost, roughness_cost, weights = c(1,1,1,1)) {
-  sum(c(location_cost, adjacency_cost, angle_cost, roughness_cost) * weights)
-}
