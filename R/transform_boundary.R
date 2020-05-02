@@ -104,6 +104,9 @@ transform_boundary <- function(data, noisy_centroids, new_centroids) {
 
   if (!st_is_valid(new_boundary)) {
     new_boundary <- st_make_valid(new_boundary)
+    if ("sfc_GEOMETRYCOLLECTION" %in% class(new_boundary)) {
+      new_boundary <- st_collection_extract(new_boundary, "POLYGON")
+    }
   }
 
   new_boundary
