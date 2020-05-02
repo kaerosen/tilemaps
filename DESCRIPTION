@@ -19,7 +19,9 @@ Imports:
     sf,
     smoothr
 Suggests:
+    dplyr,
     ggplot2,
     knitr,
-    rmarkdown
+    rmarkdown,
+    spData
 VignetteBuilder: knitr
