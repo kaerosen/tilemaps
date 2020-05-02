@@ -1,4 +1,5 @@
 # data is object of class sfc_MULTIPOLYGON or sfc_POLYGON
+# labels is vector with names of regions in same order as they appear in data
 # square is TRUE for square tile maps, FALSE for hexagon tile maps
 # flat_topped is TRUE for hexagons that are are flat topped
 # prop is vector of proportions to use when adding Gaussian noise to centroids
@@ -9,15 +10,13 @@
 # the x direction and y direction
 # weights is weights used to calculate total cost
 # output is dataframe including maps, parameters, and costs, ordered by total cost
+# plot is TRUE to create plot of all maps
 
-many_maps <- function(data, square = TRUE, flat_topped = FALSE, prop = c(0, 0.05), interpolate = c(0.5, 1),
-                      smoothness = c(0, 5), shift = list(c(0,0), c(0.5,0.5)), weights = c(1,1,1,1)) {
+many_maps <- function(data, labels, square = TRUE, flat_topped = FALSE, prop = c(0, 0.05), interpolate = c(0.5, 1),
+                      smoothness = c(0, 5), shift = list(c(0,0), c(0.5,0), c(0,0.5)), weights = c(1,1,1,1),
+                      plot = FALSE) {
 
   num_maps <- length(prop) * length(interpolate) * length(smoothness) * length(shift)
-
-  if (num_maps > 20) {
-    warning("generating more than 20 maps")
-  }
 
   maps <- list()
   shift_param <- list()
@@ -90,6 +89,12 @@ many_maps <- function(data, square = TRUE, flat_topped = FALSE, prop = c(0, 0.05
   df$map <- maps
   df$shift <- shift_param
   df <- df[order(df$total_cost),c(9, 8, 1:3, 10, 4:7)]
+  rownames(df) <- 1:nrow(df)
+
+  if (plot) {
+    print(plot_many_maps(df, labels))
+  }
+
   df
 
 }
