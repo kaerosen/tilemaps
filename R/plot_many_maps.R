@@ -1,12 +1,12 @@
-# maps_df is output from many_maps function
+# map_list is a list of "sfc_POLYGON" objects
 # labels are region labels in order of original data
 # size is size of labels on plot
 
-plot_many_maps <- function(maps_df, labels, size = 2) {
-  polygons <- st_sfc(unlist(maps_df$map, recursive = FALSE, use.names = FALSE),
-                     crs = st_crs(maps_df$map[1][[1]]))
-  id <- rep(1:nrow(maps_df), lengths(maps_df$map))
-  labels <- rep(labels, nrow(maps_df))
+plot_many_maps <- function(map_list, labels, size = 2) {
+  polygons <- st_sfc(unlist(map_list, recursive = FALSE, use.names = FALSE),
+                     crs = st_crs(map_list[1][[1]]))
+  id <- rep(1:length(map_list), lengths(map_list))
+  labels <- rep(labels, length(map_list))
   df <- data.frame(polygons, id, labels)
   ggplot(df) +
     geom_sf(aes(geometry = geometry)) +

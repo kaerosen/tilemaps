@@ -11,10 +11,11 @@
 # weights is weights used to calculate total cost
 # output is dataframe including maps, parameters, and costs, ordered by total cost
 # plot is TRUE to create plot of all maps
+# size is size of plot labels
 
 many_maps <- function(data, labels, square = TRUE, flat_topped = FALSE, prop = c(0, 0.05), interpolate = c(0.5, 1),
                       smoothness = c(0, 5), shift = list(c(0,0), c(0.5,0), c(0,0.5)), weights = c(1,1,1,1),
-                      plot = FALSE) {
+                      plot = FALSE, size = 2) {
 
   num_maps <- length(prop) * length(interpolate) * length(smoothness) * length(shift)
 
@@ -92,7 +93,7 @@ many_maps <- function(data, labels, square = TRUE, flat_topped = FALSE, prop = c
   rownames(df) <- 1:nrow(df)
 
   if (plot) {
-    print(plot_many_maps(df, labels))
+    print(plot_many_maps(df$map, labels, size))
   }
 
   df
