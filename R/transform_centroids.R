@@ -17,11 +17,9 @@ transform_centroids <- function(data, neighbors, crs, s, prop = 0) {
     neighbor_dist <- append(neighbor_dist, list(rep(0, length(neighbors[[i]]))))
   }
 
+  dist_matrix <- st_distance(original_centroids)
   for (i in 1:length(data)) {
-    for(j in 1:length(neighbor_dist[[i]])) {
-      neighbor_dist[[i]][j] <- st_distance(original_centroids[i],
-                                           original_centroids[neighbors[[i]][j]])
-    }
+    neighbor_dist[[i]] <- dist_matrix[i, neighbors[[i]]]
   }
 
   mean_neighbor_dist <- rep(0, length(data))
@@ -78,17 +76,18 @@ interpolate_centroids <- function(noisy_centroids, transformed_centroids, crs, i
 
 update_centroids <- function(centroids, neighbors, s) {
   num_neighbors <- lengths(neighbors)
+  new_centroids <- centroids
 
+  dist_matrix <- st_distance(centroids)
   for (i in 1:length(centroids)) {
     total <- 0
-    for (j in 1:num_neighbors[i]) {
-      k <- neighbors[[i]][j]
-      u <- (centroids[i] - centroids[k]) /
-        as.numeric(st_distance(centroids[i], centroids[k]))
-      total <- centroids[k] + u * as.numeric(s) + total
-    }
-    centroids[i] <- total * 1/num_neighbors[i]
+    j <- neighbors[[i]]
+    u <- (centroids[i] - centroids[j]) / as.numeric(dist_matrix[i, j])
+    values <- unlist(centroids[j] + u * s)
+    x <- sum(values[2*1:length(j) - 1])
+    y <- sum(values[2*1:length(j)])
+    new_centroids[i] <- st_point(c(x,y)) / num_neighbors[i]
   }
 
-  centroids
+  new_centroids
 }
