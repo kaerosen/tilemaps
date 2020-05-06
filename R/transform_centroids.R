@@ -33,22 +33,17 @@ transform_centroids <- function(data, neighbors, crs, s, prop = 0) {
   noisy_centroids <- st_set_crs(noisy_centroids, crs)
 
   # calculate new centroids
-  old_centroids <- update_centroids(noisy_centroids, neighbors, s)
-  dist <- as.numeric(st_distance(noisy_centroids, old_centroids, by_element = TRUE))
-  new_centroids <- update_centroids(old_centroids, neighbors, s)
-  new_dist <- as.numeric(st_distance(old_centroids, new_centroids, by_element = TRUE))
-  per_change <- (new_dist - dist) / dist
   iter <- 2
-  while (sum(abs(per_change) > .15) > 0) {
-    if (iter > 75) {
-      stop("failed to converge")
+  new_centroids <- update_centroids(noisy_centroids, neighbors, s)
+  dist <- as.numeric(st_distance(noisy_centroids, new_centroids, by_element = TRUE))
+  while (sum(dist > .1*mean_neighbor_dist) > 0) {
+    if (iter > 100) {
+      stop("centroids failed to converge")
     }
-    #print(c(iter, sum(abs(per_change) > .15)))
+    #print(c(iter, sum(dist > .1*mean_neighbor_dist)))
     old_centroids <- new_centroids
-    dist <- new_dist
     new_centroids <- update_centroids(old_centroids, neighbors, s)
-    new_dist <- as.numeric(st_distance(old_centroids, new_centroids, by_element = TRUE))
-    per_change <- (new_dist - dist) / dist
+    dist <- as.numeric(st_distance(old_centroids, new_centroids, by_element = TRUE))
     iter <- iter + 1
   }
 
