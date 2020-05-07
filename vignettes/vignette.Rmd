@@ -16,6 +16,8 @@ knitr::opts_chunk$set(
 
 ```{r setup}
 library(mastersproject)
+library(dplyr)
+library(ggplot2)
 ```
 
 # What is a Tile Map?
@@ -35,7 +37,7 @@ us <- spData::us_states %>%
                           "NY", "NC", "ND", "OH", "OK", "OR", "PA", "RI", "SC", "SD",
                           "TN", "TX", "UT", "VE", "VA", "WA", "WV", "WI", "WY"))
 
-us_3857 <- st_transform(us, 3857)
+us_3857 <- sf::st_transform(us, 3857)
 ```
 
 Additional arguments can be passed to the `generate_map()` function to control various aspects of the resulting tile map. The square argument controls whether the tiles are squares or hexagons, and the flat_topped argument controls whether or not hexagons are flat-topped. The prop, interpolate, smoothness, and shift arguments control sources of variation in the algorithm that can lead to different final tile maps. How these arguments introduce variation will be discussed in detail later. The following code generates and plots a hexagon tile map of the United States.
@@ -80,12 +82,98 @@ plot_many_maps(us_maps$map, us_3857$abbreviation)
 
 # The Algorithm
 
+The four main steps of the algorithm used to generate a tile map are transforming the centroids, transforming the boundary, fitting tiles to the boundary, and assigning regions to tiles. The prop, interpolate, smoothness, and shift arguments of the `generate_map()` and `many_maps()` functions are used to introduce variation at different steps in the algorithm, which can lead to different candidate maps. How each step of the algorithm works and how variation is introduced will now be discussed in greater detail.
+
 ## Transforming the Centroids
+
+The first step of the algorithm is to transform the region centroids so that centroids of neighboring regions are approximately equidistant but the relative orientation of neighbors is still preserved. The function used to perform the first step of the algorithm is called `transform_centroids()`. The arguments required by this function are the regions of the map as an object of class `sfc_POLYGON` or `sfc_MULTIPOLYGON`, a matrix defining the set of neighbors for each region, the coordinate reference system that is being used, an estimate of the tile size, and a proportion that is used when adding Gaussian noise to the original region centroids. Below is an example of using the `transform_centroids()` function for the United States data that was used previously. First, the `st_touches()` function from the `sf` package is used to obtain a matrix where the entries are 0 if the regions represented by the row and column are not neighbors and a 1 if they are neighbors. Next, the `st_crs()` function from the `sf` package is used to get the coordinate reference system of the data. Then, the tile size is estimated as the square root of the total area of the map divided by the number of regions in the map.
+
+```{r}
+neighbors <- sf::st_touches(us_3857$geometry)
+crs <- sf::st_crs(us_3857$geometry)
+R <- length(us_3857$geometry)
+A <- sum(sf::st_area(us_3857$geometry))
+s <- as.numeric(sqrt(A/R))
+```
+
+To add variation in this step of the algorithm, Gaussian noise is added to the original region centroids before transforming the centroids. The standard deviation for the Gaussian noise is defined as a proportion of the mean distance of a region centroid to its neighbor centroids. The prop argument is used to control this proportion. In the following example, a proportion of 0.1 is used. The formula used to update the noisy centroids is given by McNeill and Hale in *"Generating Tile Maps."* The centroids are iteratively updated until they converge. The output of the `transform_centroids()` function includes the noisy centroids and the transformed centroids.
+
+```{r}
+centroids <- transform_centroids(us_3857$geometry, neighbors, crs, s, prop = 0.1)
+```
+
+Before moving to the next step of the algorithm, another source of variation can be added. Throughout the remaining steps of the algorithm the fully-transformed centroids can be used, or interpolated centroids can be used. The interpolated centroids are defined through linear interpolation between the noisy centroids and fully-transformed centroids. If straight lines were drawn between the noisy centroids and fully-transformed centroids, then the interpolated centroids would be the points at a specified proportion of the distances along the lines. The interpolate argument controls the proportion. If the interpolate argument is set equal to 0, then the noisy centroids would be used in the remaining steps of the algorithm, and if the interpolate argument is set equal to 1, then the fully-transformed centroids would be used. If the interpolate argument is set equal to 0.75, then the points that are at 75% of the distance between the noisy centroids and fully-transformed centroids would be used. The `interpolate_centroids()` function is used to perform the interpolation. The following code shows how to use the function so that the interpolated centroids are at 75% of the distance between the noisy centroids and fully-transformed centroids.
+
+```{r}
+interpolated_centroids <- interpolate_centroids(centroids$noisy_centroids,
+                                                centroids$transformed_centroids,
+                                                crs, interpolate = 0.75)
+```
+
+The following code is used to create a plot showing the noisy, interpolate, and fully-transformed centroids. Notice that in the plot the centroids of states in the northeast are geing pushed out, while centroids of states on the west coast are being pulled toward the center of the map. This results in the centroids of neighboring states being approximately equidistant. Throughout the remaining steps of the algorithm, the interpolated centroids will be used.
+
+```{r}
+centroids_df <- data.frame(sf::st_coordinates(c(centroids$noisy_centroids,
+                                            centroids$transformed_centroids,
+                                            interpolated_centroids)))
+centroids_df <- centroids_df %>%
+  mutate(centroids = c(rep("noisy", nrow(us_3857)), 
+                       rep("fully-transformed", nrow(us_3857)),
+                       rep("interpolated", nrow(us_3857))),
+         region = rep(us_3857$abbreviation, 3))
+
+ggplot() +
+  geom_sf(aes(geometry = us_3857$geometry)) +
+  geom_point(data = centroids_df, aes(X, Y, color = centroids)) +
+  geom_line(data = centroids_df, aes(X,Y, group = region)) +
+  theme(axis.text = element_blank())
+```
 
 ## Transforming the Boundary
 
+The next step of the algorithm is to transform the boundary of the map based on the new centroids. The boundary is pulled in toward the new centroids if the boundary is more than the estimated tile size away from the centroids, and the boundary is pushed away from the new centroids if the boundary is less than the estimated tile size away from the centroids. The `transform_boundary()` function is used to carry out the process of transforming the boundary. The arguments taken by this function are the original data as an `sfc_POLYGON` or `sfc_MULTIPOLYGON` object, the noisy centroids, and the new centroids. The `transform_boundary()` function first converts the boundary of the map to a set of points, and then a sample of approximately 1,000 points is taken from that set. The sampled boundary points are transformed according to the formula given in *"Generating Tile Maps."* After the sample boundary points have been transformed, they are then converted to a polygon. To introduce variation at this step in the algorithm, the transformed boundary can be smoothed. The `smooth()` function from the `smoothr` package is used to perform kernel smoothing of the boundary. How much the boundary is smoothed is controlled by the smoothness argument. The `smooth()` function calculates the bandwidth of the Gaussian kernel used for smoothing as the mean distance between adjacent points, and the bandwidth is then multiplied by the value given for the smoothness argument. The greater the value of the smoothness argument, the more smooth the boundary will become. The following code transforms and smooths the boundary of the United States.
+
+```{r}
+transformed_boundary <- transform_boundary(us_3857$geometry, centroids$noisy_centroids,
+                                           interpolated_centroids)
+smoothed_boundary <- smoothr::smooth(transformed_boundary, method = "ksmooth",
+                                     smoothness = 20)
+```
+
+Below is a plot with the transformed and smoothed boundaries. Notice that the transformed boundary is now outside the original boundary around the northeast and the transformed boundary is within the original boundary along the west coast. For the remaining steps of the algorithm, the smoothed boundary will be used.
+
+```{r}
+ggplot() +
+  geom_sf(aes(geometry = us_3857$geometry)) +
+  geom_sf(aes(geometry = sf::st_boundary(transformed_boundary), color = "transformed")) +
+  geom_sf(aes(geometry = sf::st_boundary(smoothed_boundary), color = "smoothed")) +
+  theme(axis.text = element_blank())
+```
+
 ## Fitting Tiles to the Boundary
 
+The third step of the algorithm is fit tiles inside the transformed boundary. This is done by first creating a grid of tiles, where the tile size is estimated as described earlier, that covers the bounding box of the transformed polygon. Then the number of tile centroids that are inside the transformed boundary is found. Depending on whether the number of tile centroids inside the boundary is greater than or less than the number of regions in the map, the tile size is either increased or decreased, and then a new grid of tiles is created. This process is repeated until the correct number of tile centroids are within the transformed boundary. Variation can also be added at this step by shifting the grid of tiles before counting the number of tile centroids that lie within the transformed boundary. This step of the algorithm is performed using the `fit_tiles()` function. The arguments required by this function are the transformed boundary, which should be an object of class `sfc_POLYGON` or `sfc_MULTIPOLYGON`, the number of regions, and the initial estimate of the tile size. The arguments square and flat_topped can be used to choose whether the tiles are squares or hexagons and if hexagons are being used, whether the hexagons are flat-topped or not. Lastly, the shift argument can be used to control how the grid of tiles is shifted. The shift argument is a numeric vector of length two, with the first value determining the amount to shift in the x direction and the second value determining the amount to shift in the y direction. The values given for the shift argument are multiplied by the tile size, and the resulting value is the amount that the grid is shifted. For example if `c(0.5,0.5)` was given for the shift argument, then the grid of tiles would be shifted by half a tile in both the x and y directions. The output of the `fit_tiles()` function is an object of class `sfc_POLYGON` which contains the final tiles whose centroids were within the boundary. An example of using the `fit_tiles()` function is shown below.
+
+```{r}
+tiles <- fit_tiles(smoothed_boundary, nrow(us_3857), s, shift = c(0.5,0.5))
+```
+
+Now a tile map has been created, but the regions of the original map have not yet been assigned to the tiles. This is the final step of the algorithm.
+
 ## Assigning Regions to Tiles
+
+To complete the tile map, the regions of the original map must be assigned to the tiles of the tile map. The assignment of regions to tiles is chosen to minimize the sum of the squared distances between transformed region centroids and the assigned tile centroids. This an example of the well-known linear sum assignment problem. This problem can be solved using an algorithm known as the Hungarian method, which was first developed by Harold Kuhn. The `assign_regions()` function is used to assign the regions to tiles. This function uses the `solve_LSAP()` function from the `clue` package to perform the Hungarian method. The inputs for the `assign_regions()` function are the transformed region centroids and the tile centroids, and the output of the `assign_regions()` function is a permutation of the indices of the original regions. This permutation can be used to reorder the tiles of the `sfc_POLYGON` object output by the `fit_tiles()` function so that the tiles are then in the correct order to be added back to the original data frame. The code for performing the last step of the algorithm for the United States data is below.
+
+```{r}
+permutation <- assign_regions(interpolated_centroids, sf::st_centroid(tiles))
+final_map <- tiles[order(permutation)]
+
+us_3857 <- us_3857 %>%
+  mutate(map = final_map)
+
+ggplot(us_3857) +
+  geom_sf(aes(geometry = map)) +
+  geom_sf_text(aes(geometry = map, label = abbreviation))
+```
 
 ## Calculating Costs
