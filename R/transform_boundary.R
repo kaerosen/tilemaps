@@ -54,9 +54,7 @@ transform_boundary <- function(data, noisy_centroids, new_centroids) {
   W <- matrix(rep(0,length(samp_points)*k), ncol = k)
 
   for (i in 1:length(samp_points)) {
-    for (j in 1:k) {
-      W[i,j] <- exp(as.numeric(-dist_matrix[i,M[i,j]]^2 / (2*min(dist_matrix[i,M[i,]]^2))))
-    }
+    W[i,] <- exp(as.numeric(-dist_matrix[i,M[i,]]^2 / (2*min(dist_matrix[i,M[i,]]^2))))
   }
 
   # normalize weights
@@ -65,12 +63,10 @@ transform_boundary <- function(data, noisy_centroids, new_centroids) {
   # calculate weighted mean of displacement vectors
   v <- samp_points
   for (i in 1:length(v)) {
-    displacement <- (samp_points[i] - noisy_centroids[M[i,]]) * W[i,]
-    total <- 0
-    for (j in 1:k) {
-      total <- displacement[j] + total
-    }
-    v[i] <- total
+    displacement <- unlist((samp_points[i] - noisy_centroids[M[i,]]) * W[i,])
+    x <- sum(displacement[2*1:k - 1])
+    y <- sum(displacement[2*1:k])
+    v[i] <- st_point(c(x,y))
   }
 
   # calculate new boundary points
@@ -80,12 +76,10 @@ transform_boundary <- function(data, noisy_centroids, new_centroids) {
   s <- as.numeric(sqrt(A/R))
 
   for (i in 1:length(samp_points)) {
-    weighted_centroids <- new_centroids[M[i,]] * W[i,]
-    total <- 0
-    for (j in 1:k) {
-      total <- weighted_centroids[j] + total
-    }
-    new_boundary[i] <- total + v[i] * sqrt(s / norm(st_coordinates(v[i]), type = "f"))
+    weighted_centroids <- unlist(new_centroids[M[i,]] * W[i,])
+    x <- sum(weighted_centroids[2*1:k - 1])
+    y <- sum(weighted_centroids[2*1:k])
+    new_boundary[i] <- v[i] * sqrt(s / norm(st_coordinates(v[i]), type = "f")) + c(x,y)
   }
 
   # convert new boundary points to polygon
