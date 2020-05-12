@@ -16,6 +16,7 @@ knitr::opts_chunk$set(
 
 ```{r setup}
 library(mastersproject)
+library(sf)
 library(dplyr)
 library(ggplot2)
 ```
@@ -26,18 +27,19 @@ A tile map is a map in which each region is represented by a single tile of the 
 
 # Creating a Single Tile Map
 
-To create a single tile map, the `generate_map()` function can be used. This function requires an object of class `sfc_POLYGON` or `sfc_MULTIPOLYGON` as input. The `st_read()` function from the `sf` package can be used to read in a shapefile, and if the resulting geometry list-column is of class `sfc_POLYGON` or `sfc_MULTIPOLYGON`, then it can be passed to the `generate_map()` function to create a tile map. In the following example of creating a tile map, an `sf` object with a geometry list-column of class `sfc_MULTIPOLYGON` is loaded from the `spData` package. This data contains information on the contiguous United States. State abbreviations are added to the data to use when plotting the tile map. If the coordinates of the `sfc` object are in terms of longitude and latitude, the coordinates will need to be transformed to a planar projection before creating the tile map. The `st_transform()` function from the `sf` package can be used to transform the coordinates. In the following example, the mercator projection is used.
+To create a single tile map, the `generate_map()` function can be used. This function requires an object of class `sfc_POLYGON` or `sfc_MULTIPOLYGON` as input. The `st_read()` function from the `sf` package can be used to read in a shapefile, and if the resulting geometry list-column is of class `sfc_POLYGON` or `sfc_MULTIPOLYGON`, then it can be passed to the `generate_map()` function to create a tile map. In the following example of creating a tile map, an `sf` object with a geometry list-column of class `sfc_MULTIPOLYGON` is loaded from the `spData` package. This data contains information on the contiguous United States. Washington, D.C. is filtered out of the data, and state abbreviations are added to the data to use when plotting the tile map. If the coordinates of the `sfc` object are in terms of longitude and latitude, the coordinates will need to be transformed to a planar projection before creating the tile map. The `st_transform()` function from the `sf` package can be used to transform the coordinates. In the following example, the mercator projection is used.
 
 ```{r}
 us <- spData::us_states %>%
+  filter(NAME != "District of Columbia") %>%
   arrange(NAME) %>%
-  mutate(abbreviation = c("AL", "AZ", "AR", "CA", "CO", "CT", "DE", "DC", "FL", "GA",
-                          "ID", "IL", "IN", "IA", "KS", "KY", "LA", "ME", "MD", "MA", 
-                          "MI", "MN", "MS", "MO", "MT", "NE", "NV", "NH", "NJ", "NM",
-                          "NY", "NC", "ND", "OH", "OK", "OR", "PA", "RI", "SC", "SD",
-                          "TN", "TX", "UT", "VE", "VA", "WA", "WV", "WI", "WY"))
+  mutate(abbreviation = c("AL", "AZ", "AR", "CA", "CO", "CT", "DE", "FL", "GA", "ID",
+                          "IL", "IN", "IA", "KS", "KY", "LA", "ME", "MD", "MA", "MI",
+                          "MN", "MS", "MO", "MT", "NE", "NV", "NH", "NJ", "NM", "NY",
+                          "NC", "ND", "OH", "OK", "OR", "PA", "RI", "SC", "SD", "TN",
+                          "TX", "UT", "VT", "VA", "WA", "WV", "WI", "WY"))
 
-us_3857 <- sf::st_transform(us, 3857)
+us_3857 <- st_transform(us, 3857)
 ```
 
 Additional arguments can be passed to the `generate_map()` function to control various aspects of the resulting tile map. The square argument controls whether the tiles are squares or hexagons, and the flat_topped argument controls whether or not hexagons are flat-topped. The prop, interpolate, smoothness, and shift arguments control sources of variation in the algorithm that can lead to different final tile maps. How these arguments introduce variation will be discussed in detail later. The following code generates and plots a hexagon tile map of the United States.
@@ -50,7 +52,25 @@ us_3857 <- us_3857 %>%
 ggplot(us_3857) +
   geom_sf(aes(geometry = tile_map)) +
   geom_sf_text(aes(geometry = tile_map, label = abbreviation),
-               fun.geometry = function(x) sf::st_centroid(x))
+               fun.geometry = function(x) st_centroid(x))
+```
+
+Once a tile map has been created, coloring tiles according to another variable is simple. In the following code, a variable for the party of the governor of each state is added to the data frame, and then this variable is used to color the tiles in the plot of the tile map.
+
+```{r}
+us_3857 <- us_3857 %>%
+  mutate(party = c("R","R", "R", "D", "D", "D", "D", "R","R", "R", "D", "R", "R",
+                   "D", "D", "D", "D", "R", "R", "D", "D", "R", "R", "D", "R", "D",
+                   "R", "D", "D", "D", "D", "R","R", "R", "D", "D", "D", "R","R",
+                   "R", "R","R", "R", "D", "D", "R", "D", "R"),
+         party = ifelse(party == "R", "Republican", "Democrat"),
+         party = factor(party, c("Republican", "Democrat")))
+
+ggplot(us_3857) +
+  geom_sf(aes(geometry = tile_map, fill = party)) +
+  geom_sf_text(aes(geometry = tile_map, label = abbreviation),
+               fun.geometry = function(x) st_centroid(x)) +
+  ggtitle("Party Affiliation of United States Governors (2020)")
 ```
 
 # Creating Many Tile Maps
