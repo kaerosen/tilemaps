@@ -1,4 +1,4 @@
-Package: mastersproject
+Package: tilemaps
 Title: What the Package Does (One Line, Title Case)
 Version: 0.0.0.9000
 Authors@R: 
@@ -11,8 +11,8 @@ Description: What the package does (one paragraph).
 License: What license it uses
 Encoding: UTF-8
 LazyData: true
-URL: https://github.com/kaerosen/mastersproject
-BugReports: https://github.com/kaerosen/mastersproject/issues
+URL: https://github.com/kaerosen/tilemaps
+BugReports: https://github.com/kaerosen/tilemaps/issues
 Imports:
     clue,
     lwgeom,
