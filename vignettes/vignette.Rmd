@@ -1,5 +1,5 @@
 ---
-title: "vignette"
+title: "Tile Maps"
 output: rmarkdown::html_vignette
 vignette: >
   %\VignetteIndexEntry{vignette}
@@ -14,7 +14,7 @@ knitr::opts_chunk$set(
 )
 ```
 
-```{r setup}
+```{r setup, message=FALSE}
 library(mastersproject)
 library(sf)
 library(dplyr)
@@ -23,7 +23,7 @@ library(ggplot2)
 
 # What is a Tile Map?
 
-A tile map is a map in which each region is represented by a single tile of the same shape and size. For example, a square tile map of the United States would consist of square tiles of the same size for each state, regardless of the area of each state. When creating a tile map, the goal is to arrange tiles in a manner that preserves local relationships between regions, as well as the overall shape of the original map. Using a tile map is advantageous when trying to visualize data where the importance of a region does not depend on the area of the region. Tile maps prevent regions with large areas from dominating a map and prevent regions with small areas from going unnoticed. The `packagename` package implements an algorithm for creating tile maps that was proposed by Graham McNeill and Scott Hale in the paper *"Generating Tile Maps."* `packagename` allows the user to generate a single tile map or many tile maps, which can be compared by using cost functions or by plotting the maps.
+A tile map is a map in which each region is represented by a single tile of the same shape and size. For example, a square tile map of the United States would consist of square tiles of the same size for each state, regardless of the geographic area of each state. When creating a tile map, the goal is to arrange tiles in a manner that preserves local relationships between regions, as well as the overall shape of the original map. Using a tile map is advantageous when trying to visualize data where the importance of a region does not depend on the geographic area of the region. Tile maps prevent regions with large areas from dominating a map and prevent regions with small areas from going unnoticed. The `tilemaps` package implements an algorithm for creating tile maps that was proposed by Graham McNeill and Scott Hale in the paper *"Generating Tile Maps."* `tilemaps` allows the user to generate a single tile map or many tile maps, which can be compared by using cost functions or by plotting the maps.
 
 # Creating a Single Tile Map
 
@@ -42,9 +42,9 @@ us <- spData::us_states %>%
 us_3857 <- st_transform(us, 3857)
 ```
 
-Additional arguments can be passed to the `generate_map()` function to control various aspects of the resulting tile map. The square argument controls whether the tiles are squares or hexagons, and the flat_topped argument controls whether or not hexagons are flat-topped. The prop, interpolate, smoothness, and shift arguments control sources of variation in the algorithm that can lead to different final tile maps. How these arguments introduce variation will be discussed in detail later. The following code generates and plots a hexagon tile map of the United States.
+Additional arguments can be passed to the `generate_map()` function to control various aspects of the resulting tile map. The `square` argument controls whether the tiles are squares or hexagons, and the `flat_topped` argument controls whether or not hexagons are flat-topped. The `prop`, `interpolate`, `smoothness`, and `shift` arguments control sources of variation in the algorithm that can lead to different final tile maps. How these arguments introduce variation will be discussed in detail later. The following code generates and plots a hexagon tile map of the United States.
 
-```{r}
+```{r fig.height=3, fig.width=4, fig.align='center'}
 us_3857 <- us_3857 %>%
   mutate(tile_map = generate_map(geometry, square = FALSE, flat_topped = TRUE,
                                  prop = 0, interpolate = 1, smoothness = 0, shift = c(0,0)))
@@ -55,9 +55,9 @@ ggplot(us_3857) +
                fun.geometry = function(x) st_centroid(x))
 ```
 
-Once a tile map has been created, coloring tiles according to another variable is simple. In the following code, a variable for the party of the governor of each state is added to the data frame, and then this variable is used to color the tiles in the plot of the tile map.
+Once a tile map has been created, coloring tiles according to another variable is simple. In the following code, a variable for the party of the governor of each state is added to the data frame, and then this variable is used to color the tiles in the plot of the tile map. This is an example of a situation where it is useful to use a tile map, instead of a regular map, because each state has only one governor, regardless of the area or population of the state.
 
-```{r}
+```{r fig.height=4.5, fig.width=5.5, fig.align='center'}
 us_3857 <- us_3857 %>%
   mutate(party = c("R","R", "R", "D", "D", "D", "D", "R","R", "R", "D", "R", "R",
                    "D", "D", "D", "D", "R", "R", "D", "D", "R", "R", "D", "R", "D",
@@ -75,17 +75,18 @@ ggplot(us_3857) +
 
 # Creating Many Tile Maps
 
-To create and compare more than one tile map, the `many_maps()` function can be used. Similarly to the `generate_map()` function, the `many_maps()` function requires the data to be an object of class `sfc_POLYGON` or `sfc_MULTIPOLYGON`. Additionally, the `many_maps()` function has a labels argument which needs to be a character vector of the labels for the regions in the map. The square and flat_topped arguments are the same as for the `generate_map()` function. Again the prop, interpolate, smoothness, and shift arguments control sources of variation when creating the tile maps, but for the `many_maps()` function these arguments can have multiple values. The total number of maps generated by the `many_maps()` function is the product of the number of values each of these arguments can take on. In the following example, each of the prop, interpolate, smoothness, and shift arguments has two possible values, so 16 maps will be generated. The weights argument is used to control the weights used when calculating the total cost associated with each map. The different types of costs will be discussed later as well. The plot argument controls whether or not the generated maps should automatically be plotted, and the size argument controls the size of the labels in the plots. The output of the `many_maps()` function is a data frame which contains the generated maps, the parameters used for creating the maps, and the costs associated with each map. The data frame is ordered by the total cost.
+To create and compare more than one tile map, the `many_maps()` function can be used. Similarly to the `generate_map()` function, the `many_maps()` function requires the data to be an object of class `sfc_POLYGON` or `sfc_MULTIPOLYGON`. Additionally, the `many_maps()` function has a `labels` argument which needs to be a character vector of the labels for the regions in the map. The `square` and `flat_topped` arguments are the same as for the `generate_map()` function. Again the `prop`, `interpolate`, `smoothness`, and `shift` arguments control sources of variation when creating the tile maps, but for the `many_maps()` function these arguments can have multiple values. The total number of maps generated by the `many_maps()` function is the product of the number of values each of these arguments can take on. In the following example, each of the `prop`, `interpolate`, `smoothness`, and `shift` arguments has two possible values, so 16 maps will be generated. The `weights` argument is used to control the `weights` used when calculating the total cost associated with each map. The different types of costs will be discussed later as well. The `plot` argument controls whether or not the generated maps should automatically be plotted, and the `size` argument controls the size of the labels in the plots. The output of the `many_maps()` function is a data frame in which each row corresponds to one map and the columns contain the generated maps, the parameters used for creating the maps, and the costs associated with each map. The data frame is ordered by the total cost.
 
-```{r}
-us_maps <- many_maps(us_3857$geometry, us_3857$abbreviation, prop = c(0, 0.1), interpolate = c(0.5, 1),
-                     smoothness = c(0, 20), shift = list(c(0,0), c(0,0.5)), weights = c(1,1,1,1),
-                     plot = TRUE)
+```{r fig.height=6, fig.width=7, fig.align='center'}
+us_maps <- many_maps(us_3857$geometry, us_3857$abbreviation, prop = c(0, 0.1),
+                     interpolate = c(0.5, 1), smoothness = c(0, 20), 
+                     shift = list(c(0,0), c(0,0.5)), weights = c(1,1,1,1),
+                     plot = TRUE, size = 1.5)
 ```
 
 After comparing the tile maps that were generated, the tile map that the user wishes to use can be added to the original data frame and plotted.
 
-```{r}
+```{r fig.height=3, fig.width=4, fig.align='center'}
 us_3857 <- us_3857 %>%
   mutate(square_map = us_maps$map[[1]])
 
@@ -94,45 +95,37 @@ ggplot(us_3857) +
   geom_sf_text(aes(geometry = square_map, label = abbreviation))
 ```
 
-If the plot argument was set equal to `FALSE` when the many maps function was run, but a plot of all the generated maps is wanted, the `many_maps()` function does not need to be run again. Instead the `plot_many_maps()` function can be used to create the plot that the `many_maps()` function would have if the plot argument were set equal to `TRUE`. The first argument required by the `plot_many_maps()` function is a list of maps, which are of class `sfc_POLYGON`. The map column from the data frame created by the `many_maps()` function can be supplied for the first argument. The labels for the regions must also be given as an argument to the `plot_many_maps()` function, and the size argument can be used to adjust the size of the labels in the plot. Below, the `plot_many_maps()` function is used to create the same plot that was created when running the `many_maps()` function for the United States data previously.
+If the `plot` argument was set equal to `FALSE` when the many maps function was run, but a plot of all the generated maps is wanted, the `many_maps()` function does not need to be run again. Instead the `plot_many_maps()` function can be used to create the plot that the `many_maps()` function would have if the `plot` argument were set equal to `TRUE`. The first argument required by the `plot_many_maps()` function is a list of maps, which are of class `sfc_POLYGON`. The map column from the data frame created by the `many_maps()` function can be supplied for the first argument. The labels for the regions must also be given as an argument to the `plot_many_maps()` function, and the `size` argument can be used to adjust the size of the labels in the plot. Below is code for how the `plot_many_maps()` function can be used to create the same plot that was created when running the `many_maps()` function for the United States data previously.
 
-```{r}
-plot_many_maps(us_maps$map, us_3857$abbreviation)
+```{r eval=FALSE}
+plot_many_maps(us_maps$map, us_3857$abbreviation, size = 1.5)
 ```
 
 # The Algorithm
 
-The four main steps of the algorithm used to generate a tile map are transforming the centroids, transforming the boundary, fitting tiles to the boundary, and assigning regions to tiles. The prop, interpolate, smoothness, and shift arguments of the `generate_map()` and `many_maps()` functions are used to introduce variation at different steps in the algorithm, which can lead to different candidate maps. How each step of the algorithm works and how variation is introduced will now be discussed in greater detail.
+The four main steps of the algorithm used to generate a tile map are transforming the centroids, transforming the boundary, fitting tiles to the boundary, and assigning regions to tiles. The `prop`, `interpolate`, `smoothness`, and `shift` arguments of the `generate_map()` and `many_maps()` functions are used to introduce variation at different steps in the algorithm, which can lead to different candidate maps. How each step of the algorithm works and how variation is introduced will now be discussed in greater detail.
 
 ## Transforming the Centroids
 
-The first step of the algorithm is to transform the region centroids so that centroids of neighboring regions are approximately equidistant but the relative orientation of neighbors is still preserved. The function used to perform the first step of the algorithm is called `transform_centroids()`. The arguments required by this function are the regions of the map as an object of class `sfc_POLYGON` or `sfc_MULTIPOLYGON`, a matrix defining the set of neighbors for each region, the coordinate reference system that is being used, an estimate of the tile size, and a proportion that is used when adding Gaussian noise to the original region centroids. Below is an example of using the `transform_centroids()` function for the United States data that was used previously. First, the `st_touches()` function from the `sf` package is used to obtain a matrix where the entries are 0 if the regions represented by the row and column are not neighbors and a 1 if they are neighbors. Next, the `st_crs()` function from the `sf` package is used to get the coordinate reference system of the data. Then, the tile size is estimated as the square root of the total area of the map divided by the number of regions in the map.
+The first step of the algorithm is to transform the region centroids so that centroids of neighboring regions are approximately equidistant but the relative orientation of neighbors is still preserved. The `prop` argument can be used at this step of the algorithm to add variation. Before transforming the original region centroids, Gaussian noise is added to the position of each centroid. The standard deviation for the Gaussian noise is defined as a proportion of the mean distance of a region centroid to its neighbor centroids, and the `prop` argument is used to control this proportion. After noise has been added to the centroids, the centroids are iteratively updated until they converge. The formula used to update the noisy centroids is given by McNeill and Hale in *"Generating Tile Maps."*
 
-```{r}
+Before moving to the next step of the algorithm, another source of variation can be added. Throughout the remaining steps of the algorithm the fully-transformed centroids can be used, or interpolated centroids can be used. The interpolated centroids are defined through linear interpolation between the noisy centroids and fully-transformed centroids. If straight lines were drawn between the noisy centroids and fully-transformed centroids, then the interpolated centroids would be the points at a specified proportion of the distances along the lines. The `interpolate` argument controls the proportion. If the `interpolate` argument is set equal to 0, then the noisy centroids would be used in the remaining steps of the algorithm, and if the `interpolate` argument is set equal to 1, then the fully-transformed centroids would be used. If the `interpolate` argument is set equal to 0.75, then the points that are at 75% of the distance between the noisy centroids and fully-transformed centroids would be used.
+
+Using the same United States dataset as before, the plot below shows the noisy, interpolated, and fully-transformed centroids when the `prop` argument was set equal to 0.1, and the `interpolate` argument was set equal to 0.75. Notice that in the plot the centroids of states in the northeast are being pushed out, while centroids of states on the west coast are being pulled toward the center of the map. This results in the centroids of neighboring states being approximately equidistant. Throughout the remaining steps of the algorithm, the interpolated centroids will be used.
+
+```{r echo=FALSE, fig.height=5, fig.width=6, fig.align='center'}
 neighbors <- sf::st_touches(us_3857$geometry)
 crs <- sf::st_crs(us_3857$geometry)
 R <- length(us_3857$geometry)
 A <- sum(sf::st_area(us_3857$geometry))
 s <- as.numeric(sqrt(A/R))
-```
 
-To add variation in this step of the algorithm, Gaussian noise is added to the original region centroids before transforming the centroids. The standard deviation for the Gaussian noise is defined as a proportion of the mean distance of a region centroid to its neighbor centroids. The prop argument is used to control this proportion. In the following example, a proportion of 0.1 is used. The formula used to update the noisy centroids is given by McNeill and Hale in *"Generating Tile Maps."* The centroids are iteratively updated until they converge. The output of the `transform_centroids()` function includes the noisy centroids and the transformed centroids.
-
-```{r}
 centroids <- transform_centroids(us_3857$geometry, neighbors, crs, s, prop = 0.1)
-```
 
-Before moving to the next step of the algorithm, another source of variation can be added. Throughout the remaining steps of the algorithm the fully-transformed centroids can be used, or interpolated centroids can be used. The interpolated centroids are defined through linear interpolation between the noisy centroids and fully-transformed centroids. If straight lines were drawn between the noisy centroids and fully-transformed centroids, then the interpolated centroids would be the points at a specified proportion of the distances along the lines. The interpolate argument controls the proportion. If the interpolate argument is set equal to 0, then the noisy centroids would be used in the remaining steps of the algorithm, and if the interpolate argument is set equal to 1, then the fully-transformed centroids would be used. If the interpolate argument is set equal to 0.75, then the points that are at 75% of the distance between the noisy centroids and fully-transformed centroids would be used. The `interpolate_centroids()` function is used to perform the interpolation. The following code shows how to use the function so that the interpolated centroids are at 75% of the distance between the noisy centroids and fully-transformed centroids.
-
-```{r}
 interpolated_centroids <- interpolate_centroids(centroids$noisy_centroids,
                                                 centroids$transformed_centroids,
                                                 crs, interpolate = 0.75)
-```
 
-The following code is used to create a plot showing the noisy, interpolate, and fully-transformed centroids. Notice that in the plot the centroids of states in the northeast are geing pushed out, while centroids of states on the west coast are being pulled toward the center of the map. This results in the centroids of neighboring states being approximately equidistant. Throughout the remaining steps of the algorithm, the interpolated centroids will be used.
-
-```{r}
 centroids_df <- data.frame(sf::st_coordinates(c(centroids$noisy_centroids,
                                             centroids$transformed_centroids,
                                             interpolated_centroids)))
@@ -146,45 +139,43 @@ ggplot() +
   geom_sf(aes(geometry = us_3857$geometry)) +
   geom_point(data = centroids_df, aes(X, Y, color = centroids)) +
   geom_line(data = centroids_df, aes(X,Y, group = region)) +
-  theme(axis.text = element_blank())
+  theme(axis.text = element_blank(),
+        axis.ticks = element_blank(),
+        axis.title = element_blank())
 ```
 
 ## Transforming the Boundary
 
-The next step of the algorithm is to transform the boundary of the map based on the new centroids. The boundary is pulled in toward the new centroids if the boundary is more than the estimated tile size away from the centroids, and the boundary is pushed away from the new centroids if the boundary is less than the estimated tile size away from the centroids. The `transform_boundary()` function is used to carry out the process of transforming the boundary. The arguments taken by this function are the original data as an `sfc_POLYGON` or `sfc_MULTIPOLYGON` object, the noisy centroids, and the new centroids. The `transform_boundary()` function first converts the boundary of the map to a set of points, and then a sample of approximately 1,000 points is taken from that set. The sampled boundary points are transformed according to the formula given in *"Generating Tile Maps."* After the sample boundary points have been transformed, they are then converted to a polygon. To introduce variation at this step in the algorithm, the transformed boundary can be smoothed. The `smooth()` function from the `smoothr` package is used to perform kernel smoothing of the boundary. How much the boundary is smoothed is controlled by the smoothness argument. The `smooth()` function calculates the bandwidth of the Gaussian kernel used for smoothing as the mean distance between adjacent points, and the bandwidth is then multiplied by the value given for the smoothness argument. The greater the value of the smoothness argument, the more smooth the boundary will become. The following code transforms and smooths the boundary of the United States.
+The next step of the algorithm is to transform the boundary of the map based on the new centroids. The boundary is pulled in toward the new centroids if the boundary is more than the estimated tile size away from the centroids, and the boundary is pushed away from the new centroids if the boundary is less than the estimated tile size away from the centroids. At this step, the boundary of the map is first converted to a set of points, and then a sample of approximately 1,000 points is taken from that set. The sampled boundary points are transformed according to the formula given in *"Generating Tile Maps."* After the sample boundary points have been transformed, they are then converted to a polygon. To introduce variation at this step in the algorithm, the transformed boundary can be smoothed. The `smooth()` function from the `smoothr` package is used to perform kernel smoothing of the boundary. How much the boundary is smoothed is controlled by the `smoothness` argument. The `smooth()` function calculates the bandwidth of the Gaussian kernel used for smoothing as the mean distance between adjacent points, and the bandwidth is then multiplied by the value given for the `smoothness` argument. The greater the value of the `smoothness` argument, the more smooth the boundary will become. Below is a plot with the transformed and smoothed boundaries of the United States with the `smoothness` argument set equal to 20. Notice that the transformed boundary is now outside the original boundary around the northeast and the transformed boundary is within the original boundary along the west coast. For the remaining steps of the algorithm, the smoothed boundary will be used.
 
-```{r}
+```{r echo=FALSE, fig.height=4, fig.width=5, fig.align='center'}
 transformed_boundary <- transform_boundary(us_3857$geometry, centroids$noisy_centroids,
                                            interpolated_centroids)
 smoothed_boundary <- smoothr::smooth(transformed_boundary, method = "ksmooth",
                                      smoothness = 20)
-```
 
-Below is a plot with the transformed and smoothed boundaries. Notice that the transformed boundary is now outside the original boundary around the northeast and the transformed boundary is within the original boundary along the west coast. For the remaining steps of the algorithm, the smoothed boundary will be used.
-
-```{r}
 ggplot() +
   geom_sf(aes(geometry = us_3857$geometry)) +
   geom_sf(aes(geometry = sf::st_boundary(transformed_boundary), color = "transformed")) +
   geom_sf(aes(geometry = sf::st_boundary(smoothed_boundary), color = "smoothed")) +
-  theme(axis.text = element_blank())
+  theme(axis.text = element_blank(),
+        axis.ticks = element_blank()) +
+  scale_color_discrete(name = "boundary")
 ```
 
 ## Fitting Tiles to the Boundary
 
-The third step of the algorithm is fit tiles inside the transformed boundary. This is done by first creating a grid of tiles, where the tile size is estimated as described earlier, that covers the bounding box of the transformed polygon. Then the number of tile centroids that are inside the transformed boundary is found. Depending on whether the number of tile centroids inside the boundary is greater than or less than the number of regions in the map, the tile size is either increased or decreased, and then a new grid of tiles is created. This process is repeated until the correct number of tile centroids are within the transformed boundary. Variation can also be added at this step by shifting the grid of tiles before counting the number of tile centroids that lie within the transformed boundary. This step of the algorithm is performed using the `fit_tiles()` function. The arguments required by this function are the transformed boundary, which should be an object of class `sfc_POLYGON` or `sfc_MULTIPOLYGON`, the number of regions, and the initial estimate of the tile size. The arguments square and flat_topped can be used to choose whether the tiles are squares or hexagons and if hexagons are being used, whether the hexagons are flat-topped or not. Lastly, the shift argument can be used to control how the grid of tiles is shifted. The shift argument is a numeric vector of length two, with the first value determining the amount to shift in the x direction and the second value determining the amount to shift in the y direction. The values given for the shift argument are multiplied by the tile size, and the resulting value is the amount that the grid is shifted. For example if `c(0.5,0.5)` was given for the shift argument, then the grid of tiles would be shifted by half a tile in both the x and y directions. The output of the `fit_tiles()` function is an object of class `sfc_POLYGON` which contains the final tiles whose centroids were within the boundary. An example of using the `fit_tiles()` function is shown below.
+The third step of the algorithm is to fit tiles inside the transformed boundary. This is done by first creating a grid of tiles that covers the bounding box of the transformed polygon. The size of the tiles is estimated by first finding the total area of the map, dividing it by the number of regions, and then taking the square root. After creating the initial grid, the number of tile centroids that are inside the transformed boundary is found. Depending on whether the number of tile centroids inside the boundary is greater than or less than the number of regions in the map, the tile size is either increased or decreased, and then a new grid of tiles is created. This process is repeated until the correct number of tile centroids are within the transformed boundary. Variation can also be added at this step by shifting the grid of tiles before counting the number of tile centroids that lie within the transformed boundary. The `shift` argument is a numeric vector of length two for the `generate_map()` function or a list of numeric vectors of length two for the `many_maps()` function. The first value of the vector determines the amount to shift in the x direction and the second value determines the amount to shift in the y direction. The values given in the vector are multiplied by the tile size, and the resulting value is the amount that the grid is shifted. For example if `c(0.5,0.5)` was given for the shift argument in the `generate_map()` function, then the grid of tiles would be shifted by half a tile in both the x and y directions. In the final step of the algorithm, a square grid, which was shifted by half a tile in each direction, will be used.
 
-```{r}
+```{r echo=FALSE}
 tiles <- fit_tiles(smoothed_boundary, nrow(us_3857), s, shift = c(0.5,0.5))
 ```
 
-Now a tile map has been created, but the regions of the original map have not yet been assigned to the tiles. This is the final step of the algorithm.
-
 ## Assigning Regions to Tiles
 
-To complete the tile map, the regions of the original map must be assigned to the tiles of the tile map. The assignment of regions to tiles is chosen to minimize the sum of the squared distances between transformed region centroids and the assigned tile centroids. This an example of the well-known linear sum assignment problem. This problem can be solved using an algorithm known as the Hungarian method, which was first developed by Harold Kuhn. The `assign_regions()` function is used to assign the regions to tiles. This function uses the `solve_LSAP()` function from the `clue` package to perform the Hungarian method. The inputs for the `assign_regions()` function are the transformed region centroids and the tile centroids, and the output of the `assign_regions()` function is a permutation of the indices of the original regions. This permutation can be used to reorder the tiles of the `sfc_POLYGON` object output by the `fit_tiles()` function so that the tiles are then in the correct order to be added back to the original data frame. The code for performing the last step of the algorithm for the United States data is below.
+To complete the tile map, the regions of the original map must be assigned to the tiles of the tile map. The assignment of regions to tiles is chosen to minimize the sum of the squared distances between transformed region centroids and the assigned tile centroids. This an example of the well-known linear sum assignment problem. This problem can be solved using an algorithm known as the Hungarian method, which was first developed by Harold Kuhn. A plot of the resulting tile map is shown below.
 
-```{r}
+```{r echo=FALSE, fig.height=3, fig.width=4, fig.align='center'}
 permutation <- assign_regions(interpolated_centroids, sf::st_centroid(tiles))
 final_map <- tiles[order(permutation)]
 
@@ -198,7 +189,7 @@ ggplot(us_3857) +
 
 ## Calculating Costs
 
-In *"Generating Tile Maps,"* McNeill and Hale describe four different cost functions that can be used to compare tile maps. The first is a location cost, which is the mean distance between the transformed centroids and tile centroids divided by the tile size. The `location_cost()` function is used to calculate this cost. The required arguments of the function are the transformed centroids, tile centroids, and tile size. The next cost is an adjacency cost, which is the mean of the proportion of neighbors that each region is missing. This cost is calculated using the `adjacency_cost()` function. The function requires two matrices as input. The first matrix should define the set of neighbors for the original map, and the second matrix should define the set of neighbors for the tile map. The relative orientation cost is a measure of how much the angles between centroids of neighboring regions change. First the mean change in angles between a region centroid and its neighboring centroids is found for each region. The final adjacency cost is the mean of the means of the regions. The `angle_cost()` function is used to calculate this cost. The arguments for the function are the original centroids, the tile centroids, and a matrix defining the set of neighbors in the original map. The final cost is a roughness cost. This cost is based on how many edges in the tile map are shared edges. The cost is calculated using the `roughness_cost()` function. The first argument of this function is `TRUE` if the tiles are squares and `FALSE` if the tiles are hexagons. The second argument of the function is the final tile map. These four costs can be combined into one total cost as a weighted sum. The data frame output by the `many_maps()` function includes columns for each of the costs, and the weights argument can be used to control the weight for each cost when calculating the total cost. 
+In *"Generating Tile Maps,"* McNeill and Hale describe four different cost functions that can be used to compare tile maps. The first is a location cost, which is the mean distance between the transformed centroids and tile centroids divided by the tile size. The next cost is an adjacency cost, which is the mean of the proportion of neighbors that each region is missing. The relative orientation cost is a measure of how much the angles between centroids of neighboring regions change. First the mean change in angles between a region centroid and its neighboring centroids is found for each region. The final adjacency cost is the mean of the means of the regions. The final cost is a roughness cost. This cost is based on how many edges in the tile map are shared edges. These four costs can be combined into one total cost as a weighted sum. The data frame output by the `many_maps()` function includes columns for each of the costs, and the `weights` argument can be used to control the weight for each cost when calculating the total cost.  
 
 
 
