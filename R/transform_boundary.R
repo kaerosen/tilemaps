@@ -16,10 +16,10 @@ transform_boundary <- function(data, noisy_centroids, new_centroids) {
 
   subset <- boundary_coords %>%
     filter(L1 == sample_groups[1])
-  if (sample_size[1] > nrow(subset)) {
+  if (sample_size[sample_groups[1]] > nrow(subset)) {
     index <- 1:nrow(subset)
   } else {
-    index <- c(1, 1:(sample_size[sample_groups[1]]-2) * floor(nrow(subset)/sample_size[sample_groups[1]]),
+    index <- c(1, sort(sample(2:(nrow(subset)-1), sample_size[sample_groups[1]]-2)),
                nrow(subset))
   }
 
@@ -28,10 +28,10 @@ transform_boundary <- function(data, noisy_centroids, new_centroids) {
     for (i in 2:length(sample_groups)) {
       subset <- boundary_coords %>%
         filter(L1 == sample_groups[i])
-      if (sample_size[i] > nrow(subset)) {
+      if (sample_size[sample_groups[i]] > nrow(subset)) {
         index <- 1:nrow(subset)
       } else {
-        index <- c(1, 1:(sample_size[sample_groups[i]]-2) * floor(nrow(subset)/sample_size[sample_groups[i]]),
+        index <- c(1, sort(sample(2:(nrow(subset)-1), sample_size[sample_groups[i]]-2)),
                    nrow(subset))
       }
       sample <- rbind(sample, subset[index,])
