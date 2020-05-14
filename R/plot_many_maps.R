@@ -10,7 +10,8 @@ plot_many_maps <- function(map_list, labels, size = 2) {
   df <- data.frame(polygons, id, labels)
   ggplot(df) +
     geom_sf(aes(geometry = geometry)) +
-    geom_sf_text(aes(geometry = geometry, label = labels), size = size) +
+    geom_sf_text(aes(geometry = geometry, label = labels), size = size,
+                 fun.geometry = function(x) st_centroid(x)) +
     facet_wrap(~ id) +
     theme_classic() +
     theme(axis.title = element_blank(),
