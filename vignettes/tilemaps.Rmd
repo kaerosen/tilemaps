@@ -114,10 +114,10 @@ Before moving to the next step of the algorithm, another source of variation can
 Using the same United States dataset as before, the plot below shows the noisy, interpolated, and fully-transformed centroids when the `prop` argument was set equal to 0.1, and the `interpolate` argument was set equal to 0.75. Notice that in the plot the centroids of states in the northeast are being pushed out, while centroids of states on the west coast are being pulled toward the center of the map. This results in the centroids of neighboring states being approximately equidistant. Throughout the remaining steps of the algorithm, the interpolated centroids will be used.
 
 ```{r echo=FALSE, fig.height=5, fig.width=6, fig.align='center'}
-neighbors <- sf::st_touches(us_3857$geometry)
-crs <- sf::st_crs(us_3857$geometry)
+neighbors <- st_touches(us_3857$geometry)
+crs <- st_crs(us_3857$geometry)
 R <- length(us_3857$geometry)
-A <- sum(sf::st_area(us_3857$geometry))
+A <- sum(st_area(us_3857$geometry))
 s <- as.numeric(sqrt(A/R))
 
 centroids <- transform_centroids(us_3857$geometry, neighbors, crs, s, prop = 0.1)
@@ -126,7 +126,7 @@ interpolated_centroids <- interpolate_centroids(centroids$noisy_centroids,
                                                 centroids$transformed_centroids,
                                                 crs, interpolate = 0.75)
 
-centroids_df <- data.frame(sf::st_coordinates(c(centroids$noisy_centroids,
+centroids_df <- data.frame(st_coordinates(c(centroids$noisy_centroids,
                                             centroids$transformed_centroids,
                                             interpolated_centroids)))
 centroids_df <- centroids_df %>%
@@ -156,8 +156,8 @@ smoothed_boundary <- smoothr::smooth(transformed_boundary, method = "ksmooth",
 
 ggplot() +
   geom_sf(aes(geometry = us_3857$geometry)) +
-  geom_sf(aes(geometry = sf::st_boundary(transformed_boundary), color = "transformed")) +
-  geom_sf(aes(geometry = sf::st_boundary(smoothed_boundary), color = "smoothed")) +
+  geom_sf(aes(geometry = st_boundary(transformed_boundary), color = "transformed")) +
+  geom_sf(aes(geometry = st_boundary(smoothed_boundary), color = "smoothed")) +
   theme(axis.text = element_blank(),
         axis.ticks = element_blank()) +
   scale_color_discrete(name = "boundary")
@@ -176,7 +176,7 @@ tiles <- fit_tiles(smoothed_boundary, nrow(us_3857), s, shift = c(0.5,0.5))
 To complete the tile map, the regions of the original map must be assigned to the tiles of the tile map. The assignment of regions to tiles is chosen to minimize the sum of the squared distances between transformed region centroids and the assigned tile centroids. This an example of the well-known linear sum assignment problem. This problem can be solved using an algorithm known as the Hungarian method, which was first developed by Harold Kuhn. A plot of the resulting tile map is shown below.
 
 ```{r echo=FALSE, fig.height=3, fig.width=4, fig.align='center'}
-permutation <- assign_regions(interpolated_centroids, sf::st_centroid(tiles))
+permutation <- assign_regions(interpolated_centroids, st_centroid(tiles))
 final_map <- tiles[order(permutation)]
 
 us_3857 <- us_3857 %>%
