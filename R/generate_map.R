@@ -20,6 +20,9 @@ generate_map <- function(data, square = TRUE, flat_topped = FALSE, prop = 0, int
 
   # find set of neighbors
   neighbors <- st_touches(data)
+  if (0 %in% lengths(neighbors)) {
+    stop("geometry is not contiguous")
+  }
 
   # STEP 1 - transform centroids
   centroids <- transform_centroids(data, neighbors, crs, s, prop)

@@ -36,6 +36,9 @@ many_maps <- function(data, labels, square = TRUE, flat_topped = FALSE, prop = c
 
   # find set of neighbors
   neighbors <- st_touches(data)
+  if (0 %in% lengths(neighbors)) {
+    stop("geometry is not contiguous")
+  }
 
   # get original centroids
   original_centroids <- st_centroid(data)
