@@ -1,29 +1,89 @@
-# data is object of class sfc_MULTIPOLYGON or sfc_POLYGON
-# labels is vector with names of regions in same order as they appear in data
-# square is TRUE for square tile maps, FALSE for hexagon tile maps
-# flat_topped is TRUE for hexagons that are are flat topped
-# prop is vector of proportions to use when adding Gaussian noise to centroids
-# interpolate is vector of values in [0,1] specifying weight for interpolation between
-# noisy centroids and fully-transformed centroids
-# smoothness is vector of values for controlling how much the transformed boundary should be smoothed
-# shift is a list of vectors of length two with the number of grid steps to shift tile maps in
-# the x direction and y direction
-# weights is weights used to calculate total cost
-# output is dataframe including maps, parameters, and costs, ordered by total cost
-# plot is TRUE to create plot of all maps
-# size is size of plot labels
+#' Generate Many Tile Maps
+#'
+#' Generate, plot, and compare many tile maps.
+#'
+#' The regions of the map must be contiguous. Coordinates cannot be in terms
+#' of latitude and longitude. Instead the coordinate reference system must be
+#' an appropriate planar projection. The number of maps generated is equal to
+#' the product of the lengths of the \code{prop}, \code{interpolate},
+#' \code{smoothness}, and \code{shift} arguments.
+#'
+#' @param data An object of class \code{sfc_MULTIPOLYGON} or
+#'   \code{sfc_POLYGON}, which contains the regions that make up the original
+#'   map.
+#' @param labels A character vector with the labels of the regions. Labels must
+#'   be in the same order as regions given for \code{data} argument.
+#' @param square logical. If \code{TRUE}, generates a square tile map. If
+#'   \code{FALSE}, generates a hexagon tile map.
+#' @param flat_topped logical. If \code{TRUE}, hexagons are flat-topped. If
+#'   \code{FALSE}, hexagons are pointy-topped.
+#' @param prop A numeric vector of proportions used in specifying the standard
+#'   deviation of the Gaussian noise added to original region centroids. The
+#'   standard deviation of the Gaussian noise is calculated as the mean
+#'   distance between a region centroid and its neighboring regions' centroids
+#'   multiplied by the value provided for the \code{prop} argument. A different
+#'   set of noisy region centroids is created for each given value.
+#' @param interpolate A numeric vector of values between 0 and 1 controlling
+#'   the linear interpolation between the noisy region centroids and
+#'   fully-transformed region centroids. If 0, noisy region centroids are used.
+#'   If 1, fully-transformed centroids are used. A different set of
+#'   interpolated centroids is created for each given value.
+#' @param smoothness numeric vector. Controls the bandwidth of the Gaussian
+#'   kernel used for smoothing the transformed boundary polygon. The bandwidth
+#'   is calculated as the mean distance between adjacent boundary points
+#'   multiplied by the value provided for the \code{smoothness} argument. A
+#'   different transformed boundary is created for each given value.
+#' @param shift A list of numeric vectors of length two specifying the number
+#'   of grid steps to shift the candidate tile map in the x and y directions
+#'   before counting the number of tile centroids that lie within the
+#'   transformed boundary. A different final tile map is created for each given
+#'   value.
+#' @param weights A numeric vector of length 4 specifiying the weights used for
+#'   calculating the total cost. The first, second, third, and fourth weights
+#'   are applied to the location, adjacency, angle, and roughness costs,
+#'   respectively.
+#' @param plot loigcal. If \code{TRUE}, prints plot of generated tile maps.
+#' @param size numeric. Controls size of labels in plot.
+#'
+#' @examples
+#' library(sf)
+#' library(spData)
+#' library(dplyr)
+#' us <- us_states %>%
+#'   arrange(NAME) %>%
+#'   mutate(abbreviation = c("AL", "AZ", "AR", "CA", "CO", "CT", "DE", "DC",
+#'                           "FL", "GA", "ID", "IL", "IN", "IA", "KS", "KY",
+#'                           "LA", "ME", "MD", "MA", "MI", "MN", "MS", "MO",
+#'                           "MT", "NE", "NV", "NH", "NJ", "NM", "NY", "NC",
+#'                           "ND", "OH", "OK", "OR", "PA", "RI", "SC", "SD",
+#'                           "TN", "TX", "UT", "VT", "VA", "WA", "WV", "WI",
+#'                           "WY"))
+#' us_3857 <- st_transform(us, 3857)
+#' us_maps <- many_maps(us_3857$geometry, us_3857$abbreviation,
+#'                      prop = c(0, 0.1), interpolate = c(0.5, 1),
+#'                      smoothness = c(0, 20), shift = list(c(0,0), c(0,0.5)),
+#'                      weights = c(1,1,1,1), plot = TRUE, size = 1.5)
+#'
+#' @return Returns a \code{data.frame} in which each row corresponds to one map
+#'  and the columns contain the generated maps, the parameters used for
+#'  creating the maps, and the costs associated with each map. The
+#'  \code{data.frame} is ordered by the total cost.
+#'
+#' @export
 
-many_maps <- function(data, labels, square = TRUE, flat_topped = FALSE, prop = c(0, 0.05), interpolate = c(0.5, 1),
-                      smoothness = c(0, 5), shift = list(c(0,0), c(0.5,0), c(0,0.5)), weights = c(1,1,1,1),
-                      plot = FALSE, size = 2) {
+many_maps <- function(data, labels, square = TRUE, flat_topped = FALSE,
+                      prop = c(0, 0.05), interpolate = c(0.5, 1),
+                      smoothness = c(0, 5),
+                      shift = list(c(0,0), c(0.5,0), c(0,0.5)),
+                      weights = c(1,1,1,1), plot = FALSE, size = 2) {
 
   num_maps <- length(prop) * length(interpolate) * length(smoothness) * length(shift)
 
   maps <- list()
   shift_param <- list()
   df <- data.frame(matrix(rep(0, num_maps*8), nrow = num_maps))
-  colnames(df) <- c("prop", "interpolate", "smoothness", "location_cost", "adjacency_cost",
-                    "angle_cost", "roughness_cost", "total_cost")
+  colnames(df) <- c("prop", "interpolate", "smoothness", "location_cost",
+                    "adjacency_cost", "angle_cost", "roughness_cost", "total_cost")
   index <- 1
 
   # get crs
@@ -51,22 +111,28 @@ many_maps <- function(data, labels, square = TRUE, flat_topped = FALSE, prop = c
 
     for (j in 1:length(interpolate)) {
       # interpolate centroids
-      interpolated_centroids <- interpolate_centroids(noisy_centroids, transformed_centroids, crs, interpolate[j])
+      interpolated_centroids <- interpolate_centroids(noisy_centroids,
+                                                      transformed_centroids,
+                                                      crs, interpolate[j])
 
       # STEP 2 - transform boundary
-      transformed_boundary <- transform_boundary(data, noisy_centroids, interpolated_centroids)
+      transformed_boundary <- transform_boundary(data, noisy_centroids,
+                                                 interpolated_centroids)
 
       for (k in 1:length(smoothness)) {
         # smooth boundary
         if (smoothness[k] != 0) {
-          smoothed_boundary <- smoothr::smooth(transformed_boundary, method = "ksmooth", smoothness = smoothness[k])
+          smoothed_boundary <- smoothr::smooth(transformed_boundary,
+                                               method = "ksmooth",
+                                               smoothness = smoothness[k])
         } else {
           smoothed_boundary <- transformed_boundary
         }
 
         for (l in 1:length(shift)) {
           # STEP 3 - fit tiles to boundary
-          grid <- fit_tiles(smoothed_boundary, R, s, square, flat_topped, shift[[l]])
+          grid <- fit_tiles(smoothed_boundary, R, s, square, flat_topped,
+                            shift[[l]])
 
           # STEP 4 - assign regions to tiles
           tile_centroids <- st_centroid(grid)
@@ -83,7 +149,8 @@ many_maps <- function(data, labels, square = TRUE, flat_topped = FALSE, prop = c
 
           maps[[index]] <- grid
           shift_param[[index]] <- shift[[l]]
-          df[index, ] <- c(prop[i], interpolate[j], smoothness[k], loc, adj, angle, rough, total_cost)
+          df[index, ] <- c(prop[i], interpolate[j], smoothness[k], loc, adj,
+                           angle, rough, total_cost)
           index <- index + 1
         }
       }

@@ -25,3 +25,4 @@ Suggests:
     rmarkdown,
     spData
 VignetteBuilder: knitr
+RoxygenNote: 7.1.0
