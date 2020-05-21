@@ -18,6 +18,7 @@ BugReports: https://github.com/kaerosen/tilemaps/issues
 Imports:
     clue,
     ggplot2,
+    igraph,
     lwgeom,
     sf,
     smoothr
