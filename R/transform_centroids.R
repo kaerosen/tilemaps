@@ -35,18 +35,18 @@ transform_centroids <- function(data, neighbors, crs, s, prop = 0) {
   noisy_centroids <- sf::st_set_crs(noisy_centroids, crs)
 
   # calculate new centroids
-  iter <- 2
   new_centroids <- update_centroids(noisy_centroids, neighbors, s)
   dist <- as.numeric(sf::st_distance(noisy_centroids, new_centroids, by_element = TRUE))
-  while (sum(dist > .1*mean_neighbor_dist) > 0) {
-    if (iter > 100) {
-      stop("centroids failed to converge")
-    }
-    #print(c(iter, sum(dist > .1*mean_neighbor_dist)))
+  iter <- 1
+  while (sum(dist > .1*mean_neighbor_dist) > 0 & iter < 100) {
     old_centroids <- new_centroids
     new_centroids <- update_centroids(old_centroids, neighbors, s)
     dist <- as.numeric(sf::st_distance(old_centroids, new_centroids, by_element = TRUE))
     iter <- iter + 1
+  }
+
+  if (iter == 100) {
+    warning("centroids failed to converge")
   }
 
   outputs <- list("noisy_centroids" = noisy_centroids,
