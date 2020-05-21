@@ -3,3 +3,4 @@
 export(generate_map)
 export(many_maps)
 export(plot_many_maps)
+importFrom(stats,rnorm)
