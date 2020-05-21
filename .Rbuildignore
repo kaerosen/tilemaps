@@ -1,2 +1,2 @@
-^package\.Rproj$
+^.*\.Rproj$
 ^\.Rproj\.user$
