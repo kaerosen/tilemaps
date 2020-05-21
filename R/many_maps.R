@@ -87,21 +87,21 @@ many_maps <- function(data, labels, square = TRUE, flat_topped = FALSE,
   index <- 1
 
   # get crs
-  crs <- st_crs(data)
+  crs <- sf::st_crs(data)
 
   # estimate grid step size
   R <- length(data)
-  A <- sum(st_area(data))
+  A <- sum(sf::st_area(data))
   s <- as.numeric(sqrt(A/R))
 
   # find set of neighbors
-  neighbors <- st_touches(data)
+  neighbors <- sf::st_touches(data)
   if (0 %in% lengths(neighbors)) {
     stop("geometry is not contiguous")
   }
 
   # get original centroids
-  original_centroids <- st_centroid(data)
+  original_centroids <- sf::st_centroid(data)
 
   for (i in 1:length(prop)) {
     # STEP 1 - transform centroids
@@ -135,12 +135,12 @@ many_maps <- function(data, labels, square = TRUE, flat_topped = FALSE,
                             shift[[l]])
 
           # STEP 4 - assign regions to tiles
-          tile_centroids <- st_centroid(grid)
+          tile_centroids <- sf::st_centroid(grid)
           perm <- assign_regions(interpolated_centroids, tile_centroids)
           grid <- grid[order(perm)]
 
           # calculate costs
-          tile_neighbors <- st_touches(grid)
+          tile_neighbors <- sf::st_touches(grid)
           loc <- location_cost(interpolated_centroids, tile_centroids, s)
           adj <- adjacency_cost(neighbors, tile_neighbors)
           angle <- angle_cost(original_centroids, tile_centroids, neighbors)

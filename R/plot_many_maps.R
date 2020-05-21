@@ -41,19 +41,20 @@
 
 
 plot_many_maps <- function(map_list, labels, size = 2) {
-  polygons <- st_sfc(unlist(map_list, recursive = FALSE, use.names = FALSE),
-                     crs = st_crs(map_list[1][[1]]))
+  polygons <- sf::st_sfc(unlist(map_list, recursive = FALSE, use.names = FALSE),
+                         crs = sf::st_crs(map_list[1][[1]]))
   id <- rep(1:length(map_list), lengths(map_list))
   labels <- rep(labels, length(map_list))
   df <- data.frame(polygons, id, labels)
-  ggplot(df) +
-    geom_sf(aes(geometry = geometry)) +
-    geom_sf_text(aes(geometry = geometry, label = labels), size = size,
-                 fun.geometry = function(x) st_centroid(x)) +
-    facet_wrap(~ id) +
-    theme_classic() +
-    theme(axis.title = element_blank(),
-          axis.text = element_blank(),
-          axis.ticks = element_blank(),
-          axis.line = element_blank())
+  ggplot2::ggplot(df) +
+    ggplot2::geom_sf(ggplot2::aes(geometry = df$geometry)) +
+    ggplot2::geom_sf_text(ggplot2::aes(geometry = df$geometry, label = labels),
+                          size = size,
+                          fun.geometry = function(x) sf::st_centroid(x)) +
+    ggplot2::facet_wrap(~ id) +
+    ggplot2::theme_classic() +
+    ggplot2::theme(axis.title = ggplot2::element_blank(),
+                   axis.text = ggplot2::element_blank(),
+                   axis.ticks = ggplot2::element_blank(),
+                   axis.line = ggplot2::element_blank())
 }

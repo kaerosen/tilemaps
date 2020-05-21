@@ -1,3 +1,5 @@
+#' @importFrom stats rnorm
+
 # STEP 1 - Transform centroids so that neighbors are equidistant
 
 # data is sfc object with geometry type MULTIPOLYGON
@@ -6,7 +8,7 @@
 
 transform_centroids <- function(data, neighbors, crs, s, prop = 0) {
   # get centroids
-  original_centroids <- st_centroid(data)
+  original_centroids <- sf::st_centroid(data)
 
   # find set of neighbors
   num_neighbors <- lengths(neighbors)
@@ -17,7 +19,7 @@ transform_centroids <- function(data, neighbors, crs, s, prop = 0) {
     neighbor_dist <- append(neighbor_dist, list(rep(0, length(neighbors[[i]]))))
   }
 
-  dist_matrix <- st_distance(original_centroids)
+  dist_matrix <- sf::st_distance(original_centroids)
   for (i in 1:length(data)) {
     neighbor_dist[[i]] <- dist_matrix[i, neighbors[[i]]]
   }
@@ -30,12 +32,12 @@ transform_centroids <- function(data, neighbors, crs, s, prop = 0) {
   # add Gaussian noise to original centroids
   noise <- rnorm(length(original_centroids), mean = 0, sd = prop*mean_neighbor_dist)
   noisy_centroids <- original_centroids + noise
-  noisy_centroids <- st_set_crs(noisy_centroids, crs)
+  noisy_centroids <- sf::st_set_crs(noisy_centroids, crs)
 
   # calculate new centroids
   iter <- 2
   new_centroids <- update_centroids(noisy_centroids, neighbors, s)
-  dist <- as.numeric(st_distance(noisy_centroids, new_centroids, by_element = TRUE))
+  dist <- as.numeric(sf::st_distance(noisy_centroids, new_centroids, by_element = TRUE))
   while (sum(dist > .1*mean_neighbor_dist) > 0) {
     if (iter > 100) {
       stop("centroids failed to converge")
@@ -43,7 +45,7 @@ transform_centroids <- function(data, neighbors, crs, s, prop = 0) {
     #print(c(iter, sum(dist > .1*mean_neighbor_dist)))
     old_centroids <- new_centroids
     new_centroids <- update_centroids(old_centroids, neighbors, s)
-    dist <- as.numeric(st_distance(old_centroids, new_centroids, by_element = TRUE))
+    dist <- as.numeric(sf::st_distance(old_centroids, new_centroids, by_element = TRUE))
     iter <- iter + 1
   }
 
@@ -62,7 +64,7 @@ interpolate_centroids <- function(noisy_centroids, transformed_centroids, crs, i
     new_centroids <- transformed_centroids
   } else {
     new_centroids <- noisy_centroids - (noisy_centroids - transformed_centroids) * interpolate
-    new_centroids <- st_set_crs(new_centroids, crs)
+    new_centroids <- sf::st_set_crs(new_centroids, crs)
   }
 
   new_centroids
@@ -73,7 +75,7 @@ update_centroids <- function(centroids, neighbors, s) {
   num_neighbors <- lengths(neighbors)
   new_centroids <- centroids
 
-  dist_matrix <- st_distance(centroids)
+  dist_matrix <- sf::st_distance(centroids)
   for (i in 1:length(centroids)) {
     total <- 0
     j <- neighbors[[i]]
@@ -81,7 +83,7 @@ update_centroids <- function(centroids, neighbors, s) {
     values <- unlist(centroids[j] + u * s)
     x <- sum(values[2*1:length(j) - 1])
     y <- sum(values[2*1:length(j)])
-    new_centroids[i] <- st_point(c(x,y)) / num_neighbors[i]
+    new_centroids[i] <- sf::st_point(c(x,y)) / num_neighbors[i]
   }
 
   new_centroids

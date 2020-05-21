@@ -1,6 +1,6 @@
 # location cost
 location_cost <- function(transformed_centroids, tile_centroids, s) {
-  as.numeric(mean(st_distance(transformed_centroids, tile_centroids, by_element = TRUE)) / s)
+  as.numeric(mean(sf::st_distance(transformed_centroids, tile_centroids, by_element = TRUE)) / s)
 }
 
 # adjacency cost
@@ -15,8 +15,8 @@ adjacency_cost <- function(original_neighbors, tile_neighbors) {
 # angle (relative orientation) cost
 angle_cost <- function(original_centroids, tile_centroids, original_neighbors) {
 
-  original_coords <- data.frame(st_coordinates(original_centroids))
-  tile_coords <- data.frame(st_coordinates(tile_centroids))
+  original_coords <- data.frame(sf::st_coordinates(original_centroids))
+  tile_coords <- data.frame(sf::st_coordinates(tile_centroids))
   region_means <- rep(0, length(original_centroids))
 
   for (i in 1:length(original_centroids)) {
@@ -59,7 +59,7 @@ roughness_cost <- function(square, tile_map) {
   R <- length(tile_map)
 
   # find number of shared edges
-  m <- 2*sum(st_geometry_type(st_intersection(tile_map)) == "LINESTRING")
+  m <- 2*sum(sf::st_geometry_type(sf::st_intersection(tile_map)) == "LINESTRING")
 
   # find minimum perimeter
   a <- ifelse(square == TRUE, 1, 3*sqrt(3)/2)

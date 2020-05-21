@@ -2,20 +2,19 @@
 
 transform_boundary <- function(data, noisy_centroids, new_centroids) {
   # take sample of original boundary points
-  original_poly <- st_union(data)
-  original_boundary <- st_boundary(original_poly)
+  original_poly <- sf::st_union(data)
+  original_boundary <- sf::st_boundary(original_poly)
   if (sum(class(original_boundary) == "sfc_MULTILINESTRING") == 0) {
-    original_boundary <- st_cast(original_boundary, "MULTILINESTRING")
+    original_boundary <- sf::st_cast(original_boundary, "MULTILINESTRING")
   }
-  boundary_points <- st_cast(original_boundary, "MULTIPOINT")
-  boundary_coords <- data.frame(st_coordinates(boundary_points))
+  boundary_points <- sf::st_cast(original_boundary, "MULTIPOINT")
+  boundary_coords <- data.frame(sf::st_coordinates(boundary_points))
 
   prop <- lengths(original_boundary[[1]]) / sum(lengths(original_boundary[[1]]))
   sample_size <- ceiling(prop * 1000)
   sample_groups <- which(sample_size > 3)
 
-  subset <- boundary_coords %>%
-    filter(L1 == sample_groups[1])
+  subset <- boundary_coords[which(boundary_coords$L1 == sample_groups[1]),]
   if (sample_size[sample_groups[1]] > nrow(subset)) {
     index <- 1:nrow(subset)
   } else {
@@ -26,8 +25,7 @@ transform_boundary <- function(data, noisy_centroids, new_centroids) {
   sample <- subset[index,]
   if (length(sample_groups) > 1) {
     for (i in 2:length(sample_groups)) {
-      subset <- boundary_coords %>%
-        filter(L1 == sample_groups[i])
+      subset <- boundary_coords[which(boundary_coords$L1 == sample_groups[i]),]
       if (sample_size[sample_groups[i]] > nrow(subset)) {
         index <- 1:nrow(subset)
       } else {
@@ -38,13 +36,14 @@ transform_boundary <- function(data, noisy_centroids, new_centroids) {
     }
   }
 
-  samp_points <- st_sfc(st_multipoint(as.matrix(sample[,1:2])), crs = st_crs(data))
-  samp_points <- st_cast(samp_points, "POINT")
+  samp_points <- sf::st_sfc(sf::st_multipoint(as.matrix(sample[,1:2])), crs = sf::st_crs(data))
+  samp_points <- sf::st_cast(samp_points, "POINT")
 
   # find k nearest noisy_centroids to each boundary point
   # M is set of idices of the k nearest noisy centroids to original boundary points
   k <- 3
-  dist_matrix <- matrix(as.numeric(st_distance(samp_points, noisy_centroids)), ncol = length(noisy_centroids))
+  dist_matrix <- matrix(as.numeric(sf::st_distance(samp_points, noisy_centroids)),
+                        ncol = length(noisy_centroids))
   M <- matrix(rep(0,nrow(sample)*k), ncol = k)
   for (i in 1:nrow(sample)) {
     M[i,] <- order(dist_matrix[i,])[1:k]
@@ -61,7 +60,7 @@ transform_boundary <- function(data, noisy_centroids, new_centroids) {
   W <- W / rowSums(W)
 
   # calculate weighted mean of displacement vectors
-  noisy_coords <- data.frame(st_coordinates(noisy_centroids))
+  noisy_coords <- data.frame(sf::st_coordinates(noisy_centroids))
   v <- matrix(rep(0, 2*nrow(sample)), ncol = 2)
   for (i in 1:nrow(v)) {
     x <- sum((sample[i,1] - noisy_coords[M[i,],1]) * W[i,])
@@ -70,10 +69,10 @@ transform_boundary <- function(data, noisy_centroids, new_centroids) {
   }
 
   # calculate new boundary points
-  new_coords <- data.frame(st_coordinates(new_centroids))
+  new_coords <- data.frame(sf::st_coordinates(new_centroids))
   new_boundary <- matrix(rep(0, 2*nrow(sample)), ncol = 2)
   R <- length(noisy_centroids)
-  A <- sum(st_area(data))
+  A <- sum(sf::st_area(data))
   s <- as.numeric(sqrt(A/R))
 
   for (i in 1:nrow(sample)) {
@@ -90,18 +89,16 @@ transform_boundary <- function(data, noisy_centroids, new_centroids) {
 
   coords_list <- list()
   for (i in 1:length(sample_groups)) {
-    points <- new_boundary_coords %>%
-      filter(L1 == sample_groups[i]) %>%
-      select("X","Y")
+    points <- new_boundary_coords[which(new_boundary_coords$L1 == sample_groups[i]),1:2]
     coords_list[[i]] <- as.matrix(points)
   }
 
-  new_boundary <- st_sfc(st_polygon(coords_list), crs = st_crs(data))
+  new_boundary <- sf::st_sfc(sf::st_polygon(coords_list), crs = sf::st_crs(data))
 
-  if (!st_is_valid(new_boundary)) {
-    new_boundary <- st_make_valid(new_boundary)
+  if (!sf::st_is_valid(new_boundary)) {
+    new_boundary <- sf::st_make_valid(new_boundary)
     if ("sfc_GEOMETRYCOLLECTION" %in% class(new_boundary)) {
-      new_boundary <- st_collection_extract(new_boundary, "POLYGON")
+      new_boundary <- sf::st_collection_extract(new_boundary, "POLYGON")
     }
   }
 

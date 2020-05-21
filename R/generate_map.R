@@ -46,15 +46,15 @@
 generate_map <- function(data, square = TRUE, flat_topped = FALSE, prop = 0,
                          interpolate = 1, smoothness = 0, shift = c(0,0)) {
   # get crs
-  crs <- st_crs(data)
+  crs <- sf::st_crs(data)
 
   # estimate grid step size
   R <- length(data)
-  A <- sum(st_area(data))
+  A <- sum(sf::st_area(data))
   s <- as.numeric(sqrt(A/R))
 
   # find set of neighbors
-  neighbors <- st_touches(data)
+  neighbors <- sf::st_touches(data)
   if (0 %in% lengths(neighbors)) {
     stop("geometry is not contiguous")
   }
@@ -80,7 +80,7 @@ generate_map <- function(data, square = TRUE, flat_topped = FALSE, prop = 0,
   grid <- fit_tiles(transformed_boundary, R, s, square, flat_topped, shift)
 
   # STEP 4 - assign regions to tiles
-  tile_centroids <- st_centroid(grid)
+  tile_centroids <- sf::st_centroid(grid)
   perm <- assign_regions(transformed_centroids, tile_centroids)
   grid <- grid[order(perm)]
 
