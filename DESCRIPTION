@@ -1,26 +1,28 @@
 Package: tilemaps
-Title: What the Package Does (One Line, Title Case)
+Title: Generate Tile Maps
 Version: 0.0.0.9000
 Authors@R: 
     person(given = "Kaelyn",
            family = "Rosenberg",
            role = c("aut", "cre"),
-           email = "kaerosenberg@gmail.com",
-           comment = c(ORCID = "YOUR-ORCID-ID"))
-Description: What the package does (one paragraph).
-License: What license it uses
+           email = "kaerosenberg@gmail.com")
+Description: Implements an algorithm for generating maps, known as tile maps,
+    in which each region is represented by a single tile of the same shape and
+    size. Allows users to generate, plot, and compare square or hexagon tile
+    maps.
+License: GPL-3
 Encoding: UTF-8
 LazyData: true
 URL: https://github.com/kaerosen/tilemaps
 BugReports: https://github.com/kaerosen/tilemaps/issues
 Imports:
     clue,
+    ggplot2,
     lwgeom,
     sf,
     smoothr
 Suggests:
     dplyr,
-    ggplot2,
     knitr,
     rmarkdown,
     spData
