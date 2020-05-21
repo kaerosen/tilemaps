@@ -120,11 +120,11 @@ R <- length(us_3857$geometry)
 A <- sum(st_area(us_3857$geometry))
 s <- as.numeric(sqrt(A/R))
 
-centroids <- transform_centroids(us_3857$geometry, neighbors, crs, s, prop = 0.1)
+centroids <- tilemaps:::transform_centroids(us_3857$geometry, neighbors, crs, s, prop = 0.1)
 
-interpolated_centroids <- interpolate_centroids(centroids$noisy_centroids,
-                                                centroids$transformed_centroids,
-                                                crs, interpolate = 0.75)
+interpolated_centroids <- tilemaps:::interpolate_centroids(centroids$noisy_centroids,
+                                                           centroids$transformed_centroids,
+                                                           crs, interpolate = 0.75)
 
 centroids_df <- data.frame(st_coordinates(c(centroids$noisy_centroids,
                                             centroids$transformed_centroids,
@@ -149,8 +149,9 @@ ggplot() +
 The next step of the algorithm is to transform the boundary of the map based on the new centroids. The boundary is pulled in toward the new centroids if the boundary is more than the estimated tile size away from the centroids, and the boundary is pushed away from the new centroids if the boundary is less than the estimated tile size away from the centroids. At this step, the boundary of the map is first converted to a set of points, and then a sample of approximately 1,000 points is taken from that set. The sampled boundary points are transformed according to the formula given in *"Generating Tile Maps."* After the sample boundary points have been transformed, they are then converted to a polygon. To introduce variation at this step in the algorithm, the transformed boundary can be smoothed. The `smooth()` function from the `smoothr` package is used to perform kernel smoothing of the boundary. How much the boundary is smoothed is controlled by the `smoothness` argument. The `smooth()` function calculates the bandwidth of the Gaussian kernel used for smoothing as the mean distance between adjacent points, and the bandwidth is then multiplied by the value given for the `smoothness` argument. The greater the value of the `smoothness` argument, the more smooth the boundary will become. Below is a plot with the transformed and smoothed boundaries of the United States with the `smoothness` argument set equal to 20. Notice that the transformed boundary is now outside the original boundary around the northeast and the transformed boundary is within the original boundary along the west coast. For the remaining steps of the algorithm, the smoothed boundary will be used.
 
 ```{r echo=FALSE, fig.height=4, fig.width=5, fig.align='center'}
-transformed_boundary <- transform_boundary(us_3857$geometry, centroids$noisy_centroids,
-                                           interpolated_centroids)
+transformed_boundary <- tilemaps:::transform_boundary(us_3857$geometry,
+                                                      centroids$noisy_centroids,
+                                                      interpolated_centroids)
 smoothed_boundary <- smoothr::smooth(transformed_boundary, method = "ksmooth",
                                      smoothness = 20)
 
@@ -168,7 +169,8 @@ ggplot() +
 The third step of the algorithm is to fit tiles inside the transformed boundary. This is done by first creating a grid of tiles that covers the bounding box of the transformed polygon. The size of the tiles is estimated by first finding the total area of the map, dividing it by the number of regions, and then taking the square root. After creating the initial grid, the number of tile centroids that are inside the transformed boundary is found. Depending on whether the number of tile centroids inside the boundary is greater than or less than the number of regions in the map, the tile size is either increased or decreased, and then a new grid of tiles is created. This process is repeated until the correct number of tile centroids are within the transformed boundary. Variation can also be added at this step by shifting the grid of tiles before counting the number of tile centroids that lie within the transformed boundary. The `shift` argument is a numeric vector of length two for the `generate_map()` function or a list of numeric vectors of length two for the `many_maps()` function. The first value of the vector determines the amount to shift in the x direction and the second value determines the amount to shift in the y direction. The values given in the vector are multiplied by the tile size, and the resulting value is the amount that the grid is shifted. For example if `c(0.5,0.5)` was given for the shift argument in the `generate_map()` function, then the grid of tiles would be shifted by half a tile in both the x and y directions. In the final step of the algorithm, a square grid, which was shifted by half a tile in each direction, will be used.
 
 ```{r echo=FALSE}
-tiles <- fit_tiles(smoothed_boundary, nrow(us_3857), s, shift = c(0.5,0.5))
+tiles <- tilemaps:::fit_tiles(smoothed_boundary, nrow(us_3857),
+                              s, shift = c(0.5,0.5))
 ```
 
 ## Assigning Regions to Tiles
@@ -176,7 +178,7 @@ tiles <- fit_tiles(smoothed_boundary, nrow(us_3857), s, shift = c(0.5,0.5))
 To complete the tile map, the regions of the original map must be assigned to the tiles of the tile map. The assignment of regions to tiles is chosen to minimize the sum of the squared distances between transformed region centroids and the assigned tile centroids. This an example of the well-known linear sum assignment problem. This problem can be solved using an algorithm known as the Hungarian method, which was first developed by Harold Kuhn. A plot of the resulting tile map is shown below.
 
 ```{r echo=FALSE, fig.height=3, fig.width=4, fig.align='center'}
-permutation <- assign_regions(interpolated_centroids, st_centroid(tiles))
+permutation <- tilemaps:::assign_regions(interpolated_centroids, st_centroid(tiles))
 final_map <- tiles[order(permutation)]
 
 us_3857 <- us_3857 %>%
