@@ -96,8 +96,14 @@ many_maps <- function(data, labels, square = TRUE, flat_topped = FALSE,
 
   # find set of neighbors
   neighbors <- sf::st_touches(data)
-  if (0 %in% lengths(neighbors)) {
-    stop("geometry is not contiguous")
+
+  # check if regions are contiguous
+  neighbor_matrix <- as.matrix(neighbors)
+  neighbor_graph <- igraph::graph_from_adjacency_matrix(neighbor_matrix)
+  neighbor_search <- igraph::bfs(neighbor_graph, 1, neimode = "all",
+                                 unreachable = FALSE)$order
+  if (any(is.na(neighbor_search))) {
+    stop("regions are not contiguous")
   }
 
   # get original centroids
