@@ -47,8 +47,8 @@ plot_many_maps <- function(map_list, labels, size = 2) {
   labels <- rep(labels, length(map_list))
   df <- data.frame(polygons, id, labels)
   ggplot2::ggplot(df) +
-    ggplot2::geom_sf(ggplot2::aes(geometry = df$geometry)) +
-    ggplot2::geom_sf_text(ggplot2::aes(geometry = df$geometry, label = labels),
+    ggplot2::geom_sf(ggplot2::aes(geometry = geometry)) +
+    ggplot2::geom_sf_text(ggplot2::aes(geometry = geometry, label = labels),
                           size = size,
                           fun.geometry = function(x) sf::st_centroid(x)) +
     ggplot2::facet_wrap(~ id) +
