@@ -46,6 +46,7 @@ plot_many_maps <- function(map_list, labels, size = 2) {
   id <- rep(1:length(map_list), lengths(map_list))
   labels <- rep(labels, length(map_list))
   df <- data.frame(polygons, id, labels)
+  geometry <- df$geometry
   ggplot2::ggplot(df) +
     ggplot2::geom_sf(ggplot2::aes(geometry = geometry)) +
     ggplot2::geom_sf_text(ggplot2::aes(geometry = geometry, label = labels),
