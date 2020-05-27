@@ -17,6 +17,7 @@ knitr::opts_chunk$set(
 
 <!-- badges: start -->
 [![R build status](https://github.com/kaerosen/tilemaps/workflows/R-CMD-check/badge.svg)](https://github.com/kaerosen/tilemaps/actions)
+[![Travis build status](https://travis-ci.com/kaerosen/tilemaps.svg?branch=master)](https://travis-ci.com/kaerosen/tilemaps)
 <!-- badges: end -->
 
 The `tilemaps` package implements an algorithm for generating maps, known as tile maps, in which each region is represented by a single tile of the same shape and size. When creating a tile map, the goal is to arrange tiles in a manner that preserves local relationships between regions, as well as the overall shape of the original map. The algorithm implemented in this package was proposed by Graham McNeill and Scott Hale in the paper *"Generating Tile Maps."* Using a tile map is advantageous when trying to visualize data where the importance of a region does not depend on the geographic area of the region. Tile maps prevent regions with large areas from dominating a map and prevent regions with small areas from going unnoticed. The package allows the user to generate a single tile map or many tile maps, which can be compared by using cost functions or by plotting the maps.

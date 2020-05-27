@@ -7,6 +7,8 @@
 
 [![R build
 status](https://github.com/kaerosen/tilemaps/workflows/R-CMD-check/badge.svg)](https://github.com/kaerosen/tilemaps/actions)
+[![Travis build
+status](https://travis-ci.com/kaerosen/tilemaps.svg?branch=master)](https://travis-ci.com/kaerosen/tilemaps)
 <!-- badges: end -->
 
 The `tilemaps` package implements an algorithm for generating maps,

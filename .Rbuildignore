@@ -2,3 +2,5 @@
 ^\.Rproj\.user$
 ^README\.Rmd$
 ^\.github$
+^cran-comments\.md$
+^\.travis\.yml$
