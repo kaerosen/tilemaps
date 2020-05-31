@@ -7,8 +7,6 @@
 
 [![R build
 status](https://github.com/kaerosen/tilemaps/workflows/R-CMD-check/badge.svg)](https://github.com/kaerosen/tilemaps/actions)
-[![Travis build
-status](https://travis-ci.com/kaerosen/tilemaps.svg?branch=master)](https://travis-ci.com/kaerosen/tilemaps)
 <!-- badges: end -->
 
 The `tilemaps` package implements an algorithm for generating maps,
@@ -17,7 +15,7 @@ of the same shape and size. When creating a tile map, the goal is to
 arrange tiles in a manner that preserves local relationships between
 regions, as well as the overall shape of the original map. The algorithm
 implemented in this package was proposed by Graham McNeill and Scott
-Hale in the paper *“Generating Tile Maps.”* Using a tile map is
+Hale in the paper *“Generating Tile Maps”* (2017). Using a tile map is
 advantageous when trying to visualize data where the importance of a
 region does not depend on the geographic area of the region. Tile maps
 prevent regions with large areas from dominating a map and prevent
@@ -38,15 +36,9 @@ devtools::install_github("kaerosen/tilemaps")
 ## Example
 
 To create a single tile map, the `generate_map()` function can be used.
-In the following example, an `sf` object with a geometry list-column of
-class `sfc_MULTIPOLYGON` is loaded from the `spData` package. This data
-contains information on the contiguous United States. Washington, D.C.
-is filtered out of the data, and state abbreviations are added to the
-data to use when plotting the tile map. The coordinates are transformed
-from longitude and latitude to the mercator projection. Then the
-`generate_map()` function is used to create a tile map consisting of
-flat-topped hexagons. Details about the arguments of the
-`generate_map()` function can be found in the `tilemaps` vignette.
+In the following example, a tile map with flat-topped hexagons is
+generated for the contiguous United States using the `governors`
+dataset, which is part of the `tilemaps` package.
 
 ``` r
 library(tilemaps)
@@ -54,83 +46,78 @@ library(sf)
 library(dplyr)
 library(ggplot2)
 
-us <- spData::us_states %>%
-  filter(NAME != "District of Columbia") %>%
-  arrange(NAME) %>%
-  mutate(abbreviation = c("AL", "AZ", "AR", "CA", "CO", "CT", "DE", "FL", "GA", "ID",
-                          "IL", "IN", "IA", "KS", "KY", "LA", "ME", "MD", "MA", "MI",
-                          "MN", "MS", "MO", "MT", "NE", "NV", "NH", "NJ", "NM", "NY",
-                          "NC", "ND", "OH", "OK", "OR", "PA", "RI", "SC", "SD", "TN",
-                          "TX", "UT", "VT", "VA", "WA", "WV", "WI", "WY"))
+governors <- governors %>%
+  mutate(tile_map = generate_map(geometry, square = FALSE, flat_topped = TRUE))
 
-us_3857 <- st_transform(us, 3857)
-
-us_3857 <- us_3857 %>%
-  mutate(tile_map = generate_map(geometry, square = FALSE, flat_topped = TRUE,
-                                 prop = 0, interpolate = 1, smoothness = 0, shift = c(0,0)))
-
-ggplot(us_3857) +
+ggplot(governors) +
   geom_sf(aes(geometry = tile_map)) +
   geom_sf_text(aes(geometry = tile_map, label = abbreviation),
-               fun.geometry = function(x) st_centroid(x))
+               fun.geometry = function(x) st_centroid(x)) +
+  theme_void()
 ```
 
 <img src="man/figures/README-single-map-1.png" width="100%" />
 
+The `generate_map()` function requires an object of class `sfc_POLYGON`
+or `sfc_MULTIPOLYGON` as input. If the coordinates of the `sfc` object
+are in terms of longitude and latitude, the coordinates will need to be
+transformed to a planar projection before creating the tile map. The
+`square` argument controls whether the tiles are squares or hexagons,
+and the `flat_topped` argument controls whether or not hexagons are
+flat-topped.
+
 Once a tile map has been created, coloring tiles according to another
-variable is simple. In the following code, a variable for the party of
-the governor of each state is added to the data frame, and then this
-variable is used to color the tiles.
+variable is simple. In the following code, the states are colored
+according to the party affiliation of the governor. This is an example
+of a situation where it is useful to use a tile map, instead of a
+regular map, because each state has only one governor, regardless of the
+area or population of the state.
 
 ``` r
-us_3857 <- us_3857 %>%
-  mutate(party = c("R","R", "R", "D", "D", "D", "D", "R","R", "R", "D", "R", "R",
-                   "D", "D", "D", "D", "R", "R", "D", "D", "R", "R", "D", "R", "D",
-                   "R", "D", "D", "D", "D", "R","R", "R", "D", "D", "D", "R","R",
-                   "R", "R","R", "R", "D", "D", "R", "D", "R"),
-         party = ifelse(party == "R", "Republican", "Democrat"),
-         party = factor(party, c("Republican", "Democrat")))
-
-ggplot(us_3857) +
+ggplot(governors) +
   geom_sf(aes(geometry = tile_map, fill = party)) +
   geom_sf_text(aes(geometry = tile_map, label = abbreviation),
                fun.geometry = function(x) st_centroid(x)) +
-  ggtitle("Party Affiliation of United States Governors (2020)")
+  scale_fill_brewer(palette = "Set1") +
+  ggtitle("Party Affiliation of United States Governors (2020)") +
+  theme_void()
 ```
 
 <img src="man/figures/README-governor-map-1.png" width="100%" />
 
 To create and compare more than one tile map, the `many_maps()` function
-can be used. For the `many_maps()` function, the `prop`, `interpolate`,
-`smoothness`, and `shift` arguments can take on multiple values, and the
-total number of maps generated by the `many_maps()` function is the
-product of the number of values each of these arguments can take on. In
-the following example, each of the arguments has two possible values, so
-16 maps will be generated. The output of the `many_maps()` function is a
-data frame in which each row corresponds to one map and the columns
-contain the generated maps, the parameters used for creating the maps,
-and the costs associated with each map. The different types of costs are
-discussed in the `tilemaps` vignette as well. The `many_maps()` function
-can also automatically plot the generated maps, as is shown in this
-example.
+can be used. In the following example, 16 candidate tile maps are
+generated and plotted.
 
 ``` r
-us_maps <- many_maps(us_3857$geometry, us_3857$abbreviation, prop = c(0, 0.1),
-                     interpolate = c(0.5, 1), smoothness = c(0, 20), 
-                     shift = list(c(0,0), c(0,0.5)), weights = c(1,1,1,1),
-                     plot = TRUE, size = 1.5)
+us_maps <- many_maps(governors$geometry, governors$abbreviation,
+                     prop = c(0, 0.1), interpolate = c(0.5, 1),
+                     smoothness = c(0, 20), shift = list(c(0,0), c(0,0.5)))
 ```
 
 <img src="man/figures/README-many-maps-1.png" width="100%" />
 
-If the `plot` argument was set equal to `FALSE` when the many maps
-function was run, but a plot of all the generated maps is wanted, the
-`many_maps()` function does not need to be run again. Instead the
-`plot_many_maps()` function can be used to create the plot. Below is
-code for how the `plot_many_maps()` function can be used to create the
-same plot that was created when running the `many_maps()` function for
-the United States data previously.
+The `prop`, `interpolate`, `smoothness`, and `shift` arguments add
+variation at different steps in the algorithm to create different
+candidate tile maps. The total number of maps generated by the
+`many_maps()` function is the product of the lengths of these arguments.
+The output of the `many_maps()` function is a data frame in which each
+row corresponds to one map and the columns contain the generated maps,
+the parameters used for creating the maps, and the costs associated with
+each map. The different sources of variation and types of costs are
+discussed in the `tilemaps` vignette.
+
+The plot of all the candidates maps shown above can be generated using
+the `plot_many_maps()` function. The function requires a list of maps,
+which are of class `sfc_POLYGON`, and the labels for the regions of the
+map. Below is code for how the `plot_many_maps()` function can be used
+to create the same plot as before.
 
 ``` r
-plot_many_maps(us_maps$map, us_3857$abbreviation, size = 1.5)
+plot_many_maps(us_maps$map, governors$abbreviation)
 ```
+
+# References
+
+McNeill, Graham, and Scott A Hale. 2017. “Generating Tile Maps.” In
+*Computer Graphics Forum*, 36:435–45. 3. Wiley Online Library.
