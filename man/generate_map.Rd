@@ -60,9 +60,7 @@ of latitude and longitude. Instead the coordinate reference system must be
 an appropriate planar projection.
 }
 \examples{
-library(sf)
-library(spData)
-us_3857 <- st_transform(us_states, 3857)
-us_3857$tile_map <- generate_map(us_3857$geometry, square = FALSE)
+governors$tile_map <- generate_map(governors$geometry, square = FALSE,
+                                   flat_topped = TRUE)
 
 }

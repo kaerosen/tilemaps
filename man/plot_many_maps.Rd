@@ -30,23 +30,9 @@ etc. Region labels must be in the same order as the regions of each
 \code{sfc_POLYGON} object.
 }
 \examples{
-library(sf)
-library(spData)
-library(dplyr)
-us <- us_states \%>\%
-  arrange(NAME) \%>\%
-  mutate(abbreviation = c("AL", "AZ", "AR", "CA", "CO", "CT", "DE", "DC",
-                          "FL", "GA", "ID", "IL", "IN", "IA", "KS", "KY",
-                          "LA", "ME", "MD", "MA", "MI", "MN", "MS", "MO",
-                          "MT", "NE", "NV", "NH", "NJ", "NM", "NY", "NC",
-                          "ND", "OH", "OK", "OR", "PA", "RI", "SC", "SD",
-                          "TN", "TX", "UT", "VT", "VA", "WA", "WV", "WI",
-                          "WY"))
-us_3857 <- st_transform(us, 3857)
-us_maps <- many_maps(us_3857$geometry, us_3857$abbreviation,
+us_maps <- many_maps(governors$geometry, governors$abbreviation,
                      prop = c(0, 0.1), interpolate = c(0.5, 1),
-                     smoothness = c(0, 20), shift = list(c(0,0), c(0,0.5)),
-                     weights = c(1,1,1,1), plot = TRUE, size = 1.5)
-plot_many_maps(us_maps$map, us_3857$abbreviation, size = 1.5)
+                     smoothness = c(0, 20), shift = list(c(0,0), c(0,0.5)))
+plot_many_maps(us_maps$map, governors$abbreviation, size = 1.5)
 
 }

@@ -32,10 +32,8 @@
 #'   boundary.
 #'
 #' @examples
-#' library(sf)
-#' library(spData)
-#' us_3857 <- st_transform(us_states, 3857)
-#' us_3857$tile_map <- generate_map(us_3857$geometry, square = FALSE)
+#' governors$tile_map <- generate_map(governors$geometry, square = FALSE,
+#'                                    flat_topped = TRUE)
 #'
 #' @return Returns an object of class \code{sfc_POLYGON}, containing the tiles of
 #'   the tile map in the same order as the original regions given to the
