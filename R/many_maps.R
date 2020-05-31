@@ -75,7 +75,7 @@ many_maps <- function(data, labels, square = TRUE, flat_topped = FALSE,
                       prop = c(0, 0.05), interpolate = c(0.5, 1),
                       smoothness = c(0, 5),
                       shift = list(c(0,0), c(0.5,0), c(0,0.5)),
-                      weights = c(1,1,1,1), plot = FALSE, size = 2) {
+                      weights = c(1,1,1,1), plot = TRUE, size = 2) {
 
   num_maps <- length(prop) * length(interpolate) * length(smoothness) * length(shift)
 
