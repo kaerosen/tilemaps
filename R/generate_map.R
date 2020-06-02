@@ -2,9 +2,11 @@
 #'
 #' Generate a single square or hexagon tile map.
 #'
-#' The regions of the map must be contiguous. Coordinates cannot be in terms
-#' of latitude and longitude. Instead the coordinate reference system must be
-#' an appropriate planar projection.
+#' Implements an algorithm for generating tile maps proposed in
+#' \emph{"Generating Tile Maps"} (McNeill and Hale 2017). The regions of the
+#' map must be contiguous. Coordinates cannot be in terms of latitude and
+#' longitude. Instead the coordinate reference system must be an appropriate
+#' planar projection.
 #'
 #' @param data An object of class \code{sfc_MULTIPOLYGON} or
 #'   \code{sfc_POLYGON}, which contains the regions that make up the original
@@ -32,12 +34,17 @@
 #'   boundary.
 #'
 #' @examples
+#' \dontrun{
 #' governors$tile_map <- generate_map(governors$geometry, square = FALSE,
 #'                                    flat_topped = TRUE)
+#' }
 #'
 #' @return Returns an object of class \code{sfc_POLYGON}, containing the tiles of
 #'   the tile map in the same order as the original regions given to the
 #'   function.
+#'
+#' @references McNeill, Graham, and Scott A Hale. 2017. “Generating Tile Maps.”
+#'  In \emph{Computer Graphics Forum}, 36:435–45. 3. Wiley Online Library.
 #'
 #' @export
 

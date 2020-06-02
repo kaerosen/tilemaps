@@ -55,12 +55,20 @@ Returns an object of class \code{sfc_POLYGON}, containing the tiles of
 Generate a single square or hexagon tile map.
 }
 \details{
-The regions of the map must be contiguous. Coordinates cannot be in terms
-of latitude and longitude. Instead the coordinate reference system must be
-an appropriate planar projection.
+Implements an algorithm for generating tile maps proposed in
+\emph{"Generating Tile Maps"} (McNeill and Hale 2017). The regions of the
+map must be contiguous. Coordinates cannot be in terms of latitude and
+longitude. Instead the coordinate reference system must be an appropriate
+planar projection.
 }
 \examples{
+\dontrun{
 governors$tile_map <- generate_map(governors$geometry, square = FALSE,
                                    flat_topped = TRUE)
+}
 
+}
+\references{
+McNeill, Graham, and Scott A Hale. 2017. “Generating Tile Maps.”
+ In \emph{Computer Graphics Forum}, 36:435–45. 3. Wiley Online Library.
 }

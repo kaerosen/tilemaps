@@ -11,5 +11,9 @@
 #'   \item{party}{political party affiliation of state governor}
 #' }
 #'
-#' @source \url{https://www.nga.org/governors/}
+#' @source \code{spData::us_states}
+#' (\url{https://www.census.gov/geo/maps-data/data/tiger-line.html})
+#'
+#' \url{https://www.nga.org/governors/}
+#'
 "governors"

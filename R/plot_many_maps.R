@@ -15,10 +15,12 @@
 #' @param size numeric. Controls size of labels in plot.
 #'
 #' @examples
+#' \dontrun{
 #' us_maps <- many_maps(governors$geometry, governors$abbreviation,
 #'                      prop = c(0, 0.1), interpolate = c(0.5, 1),
 #'                      smoothness = c(0, 20), shift = list(c(0,0), c(0,0.5)))
 #' plot_many_maps(us_maps$map, governors$abbreviation, size = 1.5)
+#' }
 #'
 #' @return Prints a plot with labels of the maps in the \code{map_list}
 #'  argument.

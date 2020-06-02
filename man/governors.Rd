@@ -13,6 +13,9 @@
 }
 }
 \source{
+\code{spData::us_states}
+(\url{https://www.census.gov/geo/maps-data/data/tiger-line.html})
+
 \url{https://www.nga.org/governors/}
 }
 \usage{

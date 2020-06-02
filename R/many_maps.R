@@ -2,11 +2,13 @@
 #'
 #' Generate, plot, and compare many tile maps.
 #'
-#' The regions of the map must be contiguous. Coordinates cannot be in terms
-#' of latitude and longitude. Instead the coordinate reference system must be
-#' an appropriate planar projection. The number of maps generated is equal to
-#' the product of the lengths of the \code{prop}, \code{interpolate},
-#' \code{smoothness}, and \code{shift} arguments.
+#' Generates many candidate tile maps using an algorithm proposed in
+#' \emph{"Generating Tile Maps"} (McNeill and Hale 2017). The regions of the
+#' map must be contiguous. Coordinates cannot be in terms of latitude and
+#' longitude. Instead the coordinate reference system must be an appropriate
+#' planar projection. The number of maps generated is equal to the product of
+#' the lengths of the \code{prop}, \code{interpolate}, \code{smoothness}, and
+#' \code{shift} arguments.
 #'
 #' @param data An object of class \code{sfc_MULTIPOLYGON} or
 #'   \code{sfc_POLYGON}, which contains the regions that make up the original
@@ -46,14 +48,19 @@
 #' @param size numeric. Controls size of labels in plot.
 #'
 #' @examples
+#' \dontrun{
 #' us_maps <- many_maps(governors$geometry, governors$abbreviation,
 #'                      prop = c(0, 0.1), interpolate = c(0.5, 1),
 #'                      smoothness = c(0, 20), shift = list(c(0,0), c(0,0.5)))
+#' }
 #'
 #' @return Returns a \code{data.frame} in which each row corresponds to one map
 #'  and the columns contain the generated maps, the parameters used for
 #'  creating the maps, and the costs associated with each map. The
 #'  \code{data.frame} is ordered by the total cost.
+#'
+#' @references McNeill, Graham, and Scott A Hale. 2017. “Generating Tile Maps.”
+#'  In \emph{Computer Graphics Forum}, 36:435–45. 3. Wiley Online Library.
 #'
 #' @export
 
