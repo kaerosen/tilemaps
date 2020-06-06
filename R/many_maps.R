@@ -40,11 +40,11 @@
 #'   before counting the number of tile centroids that lie within the
 #'   transformed boundary. A different final tile map is created for each given
 #'   value.
-#' @param weights A numeric vector of length 4 specifiying the weights used for
+#' @param weights A numeric vector of length 4 specifying the weights used for
 #'   calculating the total cost. The first, second, third, and fourth weights
 #'   are applied to the location, adjacency, angle, and roughness costs,
 #'   respectively.
-#' @param plot loigcal. If \code{TRUE}, prints plot of generated tile maps.
+#' @param plot logical. If \code{TRUE}, prints plot of generated tile maps.
 #' @param size numeric. Controls size of labels in plot.
 #'
 #' @examples
