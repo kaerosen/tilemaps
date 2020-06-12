@@ -8,8 +8,9 @@ Authors@R:
            email = "kaerosenberg@gmail.com")
 Description: Implements an algorithm for generating maps, known as tile maps,
     in which each region is represented by a single tile of the same shape and
-    size. Allows users to generate, plot, and compare square or hexagon tile
-    maps.
+    size. The algorithm was first proposed in "Generating Tile Maps" by Graham
+    McNeill and Scott Hale (2017) <doi:10.1111/cgf.13200>. Functions allow
+    users to generate, plot, and compare square or hexagon tile maps.
 License: GPL-3
 Encoding: UTF-8
 LazyData: true
