@@ -30,11 +30,11 @@ etc. Region labels must be in the same order as the regions of each
 \code{sfc_POLYGON} object.
 }
 \examples{
-\dontrun{
-us_maps <- many_maps(governors$geometry, governors$abbreviation,
-                     prop = c(0, 0.1), interpolate = c(0.5, 1),
-                     smoothness = c(0, 20), shift = list(c(0,0), c(0,0.5)))
-plot_many_maps(us_maps$map, governors$abbreviation, size = 1.5)
-}
+library(sf)
+northeast <- governors[c(6,7,17,18,19,27,28,30,36,37,43),]
+ne_maps <- many_maps(northeast$geometry, northeast$abbreviation,
+                     prop = 0.05, interpolate = 1, smoothness = c(0,20),
+                     shift = list(c(0,0), c(0,0.5)), plot = FALSE)
+plot_many_maps(ne_maps$map, northeast$abbreviation)
 
 }

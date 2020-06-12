@@ -34,10 +34,10 @@
 #'   boundary.
 #'
 #' @examples
-#' \dontrun{
-#' governors$tile_map <- generate_map(governors$geometry, square = FALSE,
+#' library(sf)
+#' northeast <- governors[c(6,7,17,18,19,27,28,30,36,37,43),]
+#' northeast$tile_map <- generate_map(northeast$geometry, square = FALSE,
 #'                                    flat_topped = TRUE)
-#' }
 #'
 #' @return Returns an object of class \code{sfc_POLYGON}, containing the tiles of
 #'   the tile map in the same order as the original regions given to the

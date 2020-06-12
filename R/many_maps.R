@@ -48,11 +48,11 @@
 #' @param size numeric. Controls size of labels in plot.
 #'
 #' @examples
-#' \dontrun{
-#' us_maps <- many_maps(governors$geometry, governors$abbreviation,
-#'                      prop = c(0, 0.1), interpolate = c(0.5, 1),
-#'                      smoothness = c(0, 20), shift = list(c(0,0), c(0,0.5)))
-#' }
+#' library(sf)
+#' northeast <- governors[c(6,7,17,18,19,27,28,30,36,37,43),]
+#' ne_maps <- many_maps(northeast$geometry, northeast$abbreviation,
+#'                      prop = 0.05, interpolate = 1, smoothness = c(0,20),
+#'                      shift = list(c(0,0), c(0,0.5)))
 #'
 #' @return Returns a \code{data.frame} in which each row corresponds to one map
 #'  and the columns contain the generated maps, the parameters used for
