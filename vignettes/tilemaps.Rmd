@@ -119,8 +119,8 @@ centroids_df <- centroids_df %>%
 centroids_df$centroids <- factor(centroids_df$centroids, c("noisy", "interpolated",
                                                            "fully-transformed"))
 
-ggplot() +
-  geom_sf(aes(geometry = governors$geometry)) +
+ggplot(governors) +
+  geom_sf(aes(geometry = geometry)) +
   geom_point(data = centroids_df, aes(X, Y, color = centroids)) +
   geom_line(data = centroids_df, aes(X,Y, group = region)) +
   scale_color_brewer(palette = "YlGnBu") +
