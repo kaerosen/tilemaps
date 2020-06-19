@@ -10,7 +10,7 @@ knitr::opts_chunk$set(
   comment = "#>",
   fig.path = "man/figures/README-",
   out.width = "100%",
-  dpi = 200
+  dpi = 300
 )
 ```
 
@@ -41,7 +41,7 @@ devtools::install_github("kaerosen/tilemaps")
 
 To create a single tile map, the `generate_map()` function can be used. In the following example, a tile map with flat-topped hexagons is generated for the contiguous United States using the `governors` dataset, which is part of the `tilemaps` package. 
 
-```{r single-map, message=FALSE}
+```{r single-map, message=FALSE, fig.height=3,fig.width=4,fig.align='center'}
 library(tilemaps)
 library(sf)
 library(dplyr)
@@ -61,7 +61,7 @@ The `generate_map()` function requires an object of class `sfc_POLYGON` or `sfc_
 
 Once a tile map has been created, coloring tiles according to another variable is simple. In the following code, the states are colored according to the party affiliation of the governor. This is an example of a situation where it is useful to use a tile map, instead of a regular map, because each state has only one governor, regardless of the area or population of the state.
 
-```{r governor-map}
+```{r governor-map, fig.height=4.5, fig.width=5.5, fig.align='center'}
 ggplot(governors) +
   geom_sf(aes(geometry = tile_map, fill = party)) +
   geom_sf_text(aes(geometry = tile_map, label = abbreviation),
@@ -73,7 +73,7 @@ ggplot(governors) +
 
 To create and compare more than one tile map, the `many_maps()` function can be used. In the following example, 16 candidate tile maps are generated and plotted.
 
-```{r many-maps}
+```{r many-maps, fig.height=6, fig.width=7, fig.align='center'}
 us_maps <- many_maps(governors$geometry, governors$abbreviation,
                      prop = c(0, 0.1), interpolate = c(0.5, 1),
                      smoothness = c(0, 20), shift = list(c(0,0), c(0,0.5)))

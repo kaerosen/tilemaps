@@ -62,7 +62,7 @@ ggplot(governors) +
   theme_void()
 ```
 
-<img src="man/figures/README-single-map-1.png" width="100%" />
+<img src="man/figures/README-single-map-1.png" width="100%" style="display: block; margin: auto;" />
 
 The `generate_map()` function requires an object of class `sfc_POLYGON`
 or `sfc_MULTIPOLYGON` as input. If the coordinates of the `sfc` object
@@ -89,7 +89,7 @@ ggplot(governors) +
   theme_void()
 ```
 
-<img src="man/figures/README-governor-map-1.png" width="100%" />
+<img src="man/figures/README-governor-map-1.png" width="100%" style="display: block; margin: auto;" />
 
 To create and compare more than one tile map, the `many_maps()` function
 can be used. In the following example, 16 candidate tile maps are
@@ -101,7 +101,7 @@ us_maps <- many_maps(governors$geometry, governors$abbreviation,
                      smoothness = c(0, 20), shift = list(c(0,0), c(0,0.5)))
 ```
 
-<img src="man/figures/README-many-maps-1.png" width="100%" />
+<img src="man/figures/README-many-maps-1.png" width="100%" style="display: block; margin: auto;" />
 
 The `prop`, `interpolate`, `smoothness`, and `shift` arguments add
 variation at different steps in the algorithm to create different
