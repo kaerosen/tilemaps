@@ -5,8 +5,8 @@
 
 <!-- badges: start -->
 
-[![R build
-status](https://github.com/kaerosen/tilemaps/workflows/R-CMD-check/badge.svg)](https://github.com/kaerosen/tilemaps/actions)
+[![CRAN
+status](https://www.r-pkg.org/badges/version/tilemaps)](https://CRAN.R-project.org/package=tilemaps)
 <!-- badges: end -->
 
 The `tilemaps` package implements an algorithm for generating maps,
@@ -24,6 +24,12 @@ user to generate a single tile map or many tile maps, which can be
 compared by using cost functions or by plotting the maps.
 
 ## Installation
+
+You can install the latest release from CRAN with:
+
+``` r
+install.packages("tilemaps")
+```
 
 You can install the development version from
 [GitHub](https://github.com/) with:
