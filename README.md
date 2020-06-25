@@ -1,13 +1,15 @@
 
 <!-- README.md is generated from README.Rmd. Please edit that file -->
 
-# tilemaps
+# tilemaps <img src="man/figures/logo.png" align="right" width="140" />
 
 <!-- badges: start -->
 
 [![CRAN
 status](https://www.r-pkg.org/badges/version/tilemaps)](https://CRAN.R-project.org/package=tilemaps)
 <!-- badges: end -->
+
+## Overview
 
 The `tilemaps` package implements an algorithm for generating maps,
 known as tile maps, in which each region is represented by a single tile
