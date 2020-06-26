@@ -54,6 +54,12 @@ ggplot(governors) +
   theme_void()
 ```
 
+The layout of a tile map can easily be written to a shapefile for later use or to share with others as follows.
+
+```{r eval=FALSE}
+st_write(governors$tile_map, "us_tilemap.shp")
+```
+
 # Creating Many Tile Maps
 
 To create and compare more than one tile map, the `many_maps()` function can be used. In the following example, 16 candidate tile maps are generated and plotted.
