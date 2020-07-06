@@ -72,7 +72,26 @@ are in terms of longitude and latitude, the coordinates will need to be
 transformed to a planar projection before creating the tile map. The
 `square` argument controls whether the tiles are squares or hexagons,
 and the `flat_topped` argument controls whether or not hexagons are
-flat-topped.
+flat-topped. The `generate_map()` function only works for contiguous
+regions. However, after a tile map has been generated, the
+`create_island()` function can be used to add islands to the layout of
+the tile map.
+
+``` r
+all_states <- governors %>%
+  add_row(abbreviation = "AK", party = "Republican",
+          tile_map = create_island(governors$tile_map, "lower left")) %>%
+  add_row(abbreviation = "HI", party = "Democrat",
+          tile_map = create_island(governors$tile_map, c(-12050000, 3008338)))
+
+ggplot(all_states) +
+  geom_sf(aes(geometry = tile_map)) +
+  geom_sf_text(aes(geometry = tile_map, label = abbreviation),
+               fun.geometry = function(x) st_centroid(x)) +
+  theme_void()
+```
+
+<img src="man/figures/README-add-islands-1.png" width="100%" style="display: block; margin: auto;" />
 
 Once a tile map has been created, coloring tiles according to another
 variable is simple. In the following code, the states are colored
@@ -82,7 +101,7 @@ regular map, because each state has only one governor, regardless of the
 area or population of the state.
 
 ``` r
-ggplot(governors) +
+ggplot(all_states) +
   geom_sf(aes(geometry = tile_map, fill = party)) +
   geom_sf_text(aes(geometry = tile_map, label = abbreviation),
                fun.geometry = function(x) st_centroid(x)) +

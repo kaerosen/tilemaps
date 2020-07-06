@@ -2,7 +2,7 @@
 title: "Tile Maps"
 output: rmarkdown::html_vignette
 vignette: >
-  %\VignetteIndexEntry{vignette}
+  %\VignetteIndexEntry{Tile Maps}
   %\VignetteEngine{knitr::rmarkdown}
   %\VignetteEncoding{UTF-8}
 ---
@@ -42,10 +42,31 @@ ggplot(governors) +
 
 The `generate_map()` function requires an object of class `sfc_POLYGON` or `sfc_MULTIPOLYGON` as input. If the coordinates of the `sfc` object are in terms of longitude and latitude, the coordinates will need to be transformed to a planar projection before creating the tile map. The `square` argument controls whether the tiles are squares or hexagons, and the `flat_topped` argument controls whether or not hexagons are flat-topped. 
 
+The `generate_map()` function only works for contiguous regions. However, after a tile map has been generated, the `create_island()` function can be used to add islands to the layout of the tile map. The `create_island()` function takes two arguments. The first is an `sfc_POLYGON` object representing the layout of a tile map, and the second is the position of the new island tile. The `position` argument can be specified as either a numeric vector of length 2 giving the coordinates for the centroid of the new tile, or a string equal to "upper left", "lower left", "upper right", or "lower right" indicating in which corner of the original tile map the new tile should be located. In the following example, tiles for Alaska and Hawaii are added to the previously generated tile map.
+
+```{r fig.height=3,fig.width=4,fig.align='center'}
+all_states <- governors %>%
+  add_row(abbreviation = "AK", party = "Republican",
+          tile_map = create_island(governors$tile_map, "lower left")) %>%
+  add_row(abbreviation = "HI", party = "Democrat",
+          tile_map = create_island(governors$tile_map, c(-12050000, 3008338)))
+
+ggplot(all_states) +
+  geom_sf(aes(geometry = tile_map)) +
+  geom_sf_text(aes(geometry = tile_map, label = abbreviation),
+               fun.geometry = function(x) st_centroid(x)) +
+  theme_void()
+```
+
 Once a tile map has been created, coloring tiles according to another variable is simple. In the following code, the states are colored according to the party affiliation of the governor. This is an example of a situation where it is useful to use a tile map, instead of a regular map, because each state has only one governor, regardless of the area or population of the state.
 
+```{r echo=FALSE}
+all_states <- all_states %>%
+  mutate(party = factor(party, c("Republican", "Democrat")))
+```
+
 ```{r fig.height=4.5, fig.width=5.5, fig.align='center'}
-ggplot(governors) +
+ggplot(all_states) +
   geom_sf(aes(geometry = tile_map, fill = party)) +
   geom_sf_text(aes(geometry = tile_map, label = abbreviation),
                fun.geometry = function(x) st_centroid(x)) +
