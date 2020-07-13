@@ -6,3 +6,6 @@
 ^\.travis\.yml$
 ^data-raw$
 ^CRAN-RELEASE$
+^_pkgdown\.yml$
+^docs$
+^pkgdown$
