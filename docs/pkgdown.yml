@@ -4,20 +4,3 @@ pkgdown_sha: ~
 articles:
   tilemaps: tilemaps.html
 last_built: 2020-07-13T19:48Z
-
-title: tilemaps
-url: https://kaerosen.github.io/tilemaps/
-template:
-  params:
-    bootswatch: minty
-
-reference:
-  - title: Functions
-    contents:
-      - '`create_island`'
-      - '`generate_map`'
-      - '`many_maps`'
-      - '`plot_many_maps`'
-  - title: Datasets
-    contents:
-      - '`governors`'
