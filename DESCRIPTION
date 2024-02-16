@@ -14,7 +14,7 @@ Description: Implements an algorithm for generating maps, known as tile maps,
 License: GPL-3
 Encoding: UTF-8
 LazyData: true
-URL: https://github.com/kaerosen/tilemaps
+URL: https://kaerosen.github.io/tilemaps/, https://github.com/kaerosen/tilemaps
 BugReports: https://github.com/kaerosen/tilemaps/issues
 Imports:
     clue,
