@@ -1,6 +1,6 @@
 Package: tilemaps
 Title: Generate Tile Maps
-Version: 0.2.0
+Version: 0.2.1
 Authors@R: 
     person(given = "Kaelyn",
            family = "Rosenberg",
@@ -20,15 +20,15 @@ Imports:
     clue,
     ggplot2,
     igraph,
-    lwgeom,
     sf,
     smoothr
 Suggests:
     dplyr,
     knitr,
+    lwgeom,
     rmarkdown,
     spData
 VignetteBuilder: knitr
-RoxygenNote: 7.1.0
+RoxygenNote: 7.3.3
 Depends: 
     R (>= 2.10)
