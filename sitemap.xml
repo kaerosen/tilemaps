@@ -1,0 +1,15 @@
+<urlset xmlns = 'http://www.sitemaps.org/schemas/sitemap/0.9'>
+<url><loc>/404.html</loc></url>
+<url><loc>/articles/index.html</loc></url>
+<url><loc>/articles/tilemaps.html</loc></url>
+<url><loc>/authors.html</loc></url>
+<url><loc>/index.html</loc></url>
+<url><loc>/news/index.html</loc></url>
+<url><loc>/reference/create_island.html</loc></url>
+<url><loc>/reference/generate_map.html</loc></url>
+<url><loc>/reference/governors.html</loc></url>
+<url><loc>/reference/index.html</loc></url>
+<url><loc>/reference/many_maps.html</loc></url>
+<url><loc>/reference/plot_many_maps.html</loc></url>
+</urlset>
+
