@@ -64,7 +64,7 @@ generate_map <- function(data, square = TRUE, flat_topped = FALSE, prop = 0,
   # check if regions are contiguous
   neighbor_matrix <- as.matrix(neighbors)
   neighbor_graph <- igraph::graph_from_adjacency_matrix(neighbor_matrix)
-  neighbor_search <- igraph::bfs(neighbor_graph, 1, neimode = "all",
+  neighbor_search <- igraph::bfs(neighbor_graph, 1, mode = "all",
                                  unreachable = FALSE)$order
   if (any(is.na(neighbor_search))) {
     stop("regions are not contiguous")

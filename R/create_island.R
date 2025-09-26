@@ -65,7 +65,7 @@ create_island <- function(tile_map, position) {
   }
 
   # determine centroid of island tile
-  if (class(position) == "character") {
+  if (inherits(position, "character")) {
     bounds <- sf::st_bbox(tile_map)
     xmin <- bounds[1]
     ymin <- bounds[2]
@@ -83,7 +83,7 @@ create_island <- function(tile_map, position) {
       stop('position argument must be numeric vector of length 2 or a string
            equal to "upper left", "lower left", "upper right", "lower right"')
     }
-  } else if (class(position) == "numeric" & length(position) == 2) {
+  } else if (inherits(position, "numeric") & length(position) == 2) {
     centroid <- position
   } else {
     stop('position argument must be numeric vector of length 2 or a string
