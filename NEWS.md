@@ -1,3 +1,6 @@
+## Version 0.2.2
+- Updated check for contiguous regions
+
 ## Version 0.2.1
 
 - Updated deprecated argument in `igraph::bfs()` function
