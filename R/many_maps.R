@@ -95,7 +95,7 @@ many_maps <- function(data, labels, square = TRUE, flat_topped = FALSE,
   neighbor_graph <- igraph::graph_from_adjacency_matrix(neighbor_matrix)
   neighbor_search <- igraph::bfs(neighbor_graph, 1, mode = "all",
                                  unreachable = FALSE)$order
-  if (any(is.na(neighbor_search))) {
+  if (length(neighbor_search) != R) {
     stop("regions are not contiguous")
   }
 
